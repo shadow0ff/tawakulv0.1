@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quranic AI Assistant - Chat</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Noto+Naskh+Arabic:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    min-height: 100vh;
+    background: #000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+  }
+
+  .nav-bar {
+    width: 100%;
+    max-width: 780px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 12px 24px;
+    background: rgba(18,18,18,0.85);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px;
+  }
+
+  .nav-bar .brand { color: #fff; font-size: 15px; font-weight: 600; letter-spacing: -0.2px; }
+  .nav-bar .brand span { color: rgba(255,255,255,0.3); font-weight: 400; }
+  .nav-links { display: flex; gap: 8px; }
+
+  .nav-link {
+    padding: 8px 16px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    font-family: inherit;
+  }
+
+  .nav-link.active { background: #fff; color: #000; }
+  .nav-link.inactive { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); color: rgba(255,255,255,0.5); }
+  .nav-link.inactive:hover { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.7); }
+
+  .chat-container {
+    width: 100%;
+    max-width: 780px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: rgba(18,18,18,0.85);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: 0 32px 64px -16px rgba(0,0,0,0.8);
+  }
+
+  .chat-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .chat-header .left { display: flex; align-items: center; gap: 12px; }
+
+  .chat-header .avatar {
+    width: 40px; height: 40px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  .chat-header .info h2 { color: #fff; font-size: 16px; font-weight: 600; letter-spacing: -0.2px; }
+  .chat-header .info span { color: rgba(255,255,255,0.25); font-size: 12px; font-weight: 400; }
+  .chat-header .lang-switcher { display: flex; gap: 6px; flex-shrink: 0; }
+
+  .chat-header .lang-btn {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.35);
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .chat-header .lang-btn:hover { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.6); border-color: rgba(255,255,255,0.2); }
+  .chat-header .lang-btn.active { background: #fff; border-color: #fff; color: #000; }
+
+  .messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-height: 400px;
+    max-height: 560px;
+  }
+
+  .messages::-webkit-scrollbar { width: 4px; }
+  .messages::-webkit-scrollbar-track { background: transparent; }
+  .messages::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+
+  .message { max-width: 85%; animation: msgIn 0.35s cubic-bezier(0.4, 0, 0.2, 1); }
+
+  @keyframes msgIn {
+    from { opacity: 0; transform: translateY(12px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .message.bot { align-self: flex-start; }
+  .message.user { align-self: flex-end; }
+
+  .message .bubble {
+    padding: 14px 18px;
+    border-radius: 16px;
+    font-size: 15px;
+    line-height: 1.7;
+    word-wrap: break-word;
+  }
+
+  .message.bot .bubble { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); color: rgba(255,255,255,0.85); border-bottom-left-radius: 4px; }
+  .message.user .bubble { background: #fff; color: #000; border-bottom-right-radius: 4px; }
+
+  .message .bubble .ayah-ref { display: block; margin-top: 10px; font-size: 13px; color: rgba(255,255,255,0.3); font-style: italic; }
+  .message.user .bubble .ayah-ref { color: rgba(0,0,0,0.4); }
+
+  .typing { align-self: flex-start; display: none; }
+  .typing.visible { display: block; }
+
+  .typing .bubble {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.06);
+    padding: 16px 20px;
+    border-radius: 16px;
+    border-bottom-left-radius: 4px;
+    display: flex;
+    gap: 5px;
+  }
+
+  .typing .dot { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,0.3); animation: dotPulse 1.4s infinite ease-in-out; }
+  .typing .dot:nth-child(2) { animation-delay: 0.2s; }
+  .typing .dot:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes dotPulse { 0%, 80%, 100% { transform: scale(0.6); opacity: 0.3; } 40% { transform: scale(1); opacity: 0.8; } }
+
+  .suggestions { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 24px 16px; }
+
+  .suggestion-btn {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.5);
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+    font-weight: 400;
+  }
+
+  .suggestion-btn:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.15); color: rgba(255,255,255,0.7); }
+
+  .chat-input-area { padding: 16px 24px 20px; border-top: 1px solid rgba(255,255,255,0.06); display: flex; gap: 10px; }
+
+  .chat-input-area input {
+    flex: 1;
+    padding: 14px 18px;
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.04);
+    color: #fff;
+    font-size: 15px;
+    outline: none;
+    transition: all 0.2s ease;
+    font-family: inherit;
+  }
+
+  .chat-input-area input::placeholder { color: rgba(255,255,255,0.2); }
+  .chat-input-area input:focus { border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.06); }
+
+  .chat-input-area button {
+    padding: 14px 20px;
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.06);
+    color: #fff;
+    font-size: 18px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    font-family: inherit;
+    line-height: 1;
+  }
+
+  .chat-input-area button:hover { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.25); }
+
+  @media (max-width: 500px) {
+    body { padding: 12px; }
+    .chat-container { border-radius: 16px; }
+    .messages { padding: 16px; min-height: 300px; max-height: 420px; }
+    .message { max-width: 92%; }
+    .nav-bar { padding: 10px 16px; flex-wrap: wrap; gap: 8px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="nav-bar">
+  <div class="brand">&#x1F54D; Quranic <span>Assistant</span></div>
+  <div class="nav-links">
+    <a href="index.html" class="nav-link inactive">Feelings</a>
+    <a href="chat.html" class="nav-link active">AI Chat</a>
+  </div>
+</div>
+
+<div class="chat-container">
+  <div class="chat-header">
+    <div class="left">
+      <div class="avatar">&#x1F54D;</div>
+      <div class="info">
+        <h2 id="chatTitle">Quranic AI Assistant</h2>
+        <span id="chatSubtitle">Ask me anything — I'll respond with Quranic wisdom</span>
+      </div>
+    </div>
+    <div class="lang-switcher">
+      <button class="lang-btn active" data-lang="en">EN</button>
+      <button class="lang-btn" data-lang="ar">AR</button>
+      <button class="lang-btn" data-lang="fr">FR</button>
+    </div>
+  </div>
+
+  <div class="messages" id="messages">
+    <div class="message bot">
+      <div class="bubble" id="welcomeMsg">
+        Peace be upon you. I'm your Quranic companion. Tell me what's on your mind &mdash; whether it's a struggle, a question, or something you're going through. I'll share verses and wisdom from the Quran to help guide you.
+      </div>
+    </div>
+  </div>
+
+  <div class="suggestions" id="suggestions">
+    <button class="suggestion-btn" data-msg="I feel lost in life">I feel lost in life</button>
+    <button class="suggestion-btn" data-msg="I'm grieving a loss">I'm grieving a loss</button>
+    <button class="suggestion-btn" data-msg="I feel anxious about the future">I feel anxious about the future</button>
+    <button class="suggestion-btn" data-msg="I'm having family problems">I'm having family problems</button>
+  </div>
+
+  <div class="typing" id="typing">
+    <div class="bubble">
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+    </div>
+  </div>
+
+  <div class="chat-input-area">
+    <input type="text" id="chatInput" placeholder="Type your message..." autocomplete="off">
+    <button id="sendBtn">&#x2191;</button>
+  </div>
+</div>
+
+<script>
+const strings = {
+  en: {
+    title: 'Quranic AI Assistant',
+    subtitle: 'Ask me anything \u2014 I\'ll respond with Quranic wisdom',
+    placeholder: 'Type your message...',
+    welcome: 'Peace be upon you. I\'m your Quranic companion. Tell me what\'s on your mind \u2014 whether it\'s a struggle, a question, or something you\'re going through. I\'ll share verses and wisdom from the Quran to help guide you.',
+    suggestions: ['I feel lost in life', 'I\'m grieving a loss', 'I feel anxious about the future', 'I\'m having family problems']
+  },
+  ar: {
+    title: '\u0627\u0644\u0645\u0633\u0627\u0639\u062F \u0627\u0644\u0642\u0631\u0622\u0646\u064A \u0627\u0644\u0630\u0643\u064A',
+    subtitle: '\u0627\u0633\u0623\u0644\u0646\u064A \u0639\u0646 \u0623\u064A \u0634\u064A\u0621 \u2014 \u0633\u0623\u0631\u062F \u0628\u062D\u0643\u0645\u0629 \u0642\u0631\u0622\u0646\u064A\u0629',
+    placeholder: '\u0627\u0643\u062A\u0628 \u0631\u0633\u0627\u0644\u062A\u0643...',
+    welcome: '\u0627\u0644\u0633\u0644\u0627\u0645 \u0639\u0644\u064A\u0643\u0645. \u0623\u0646\u0627 \u0631\u0641\u064A\u0642\u0643 \u0627\u0644\u0642\u0631\u0622\u0646\u064A. \u0623\u062E\u0628\u0631\u0646\u064A \u0628\u0645\u0627 \u064A\u0634\u063A\u0644 \u0628\u0627\u0644\u0643 \u2014 \u0633\u0624\u0627\u0621 \u0643\u0627\u0646 \u0635\u0631\u0627\u0639\u064B\u0627 \u0623\u0648 \u0633\u0624\u0627\u0644\u064B\u0627 \u0623\u0648 \u0645\u0627 \u062A\u0645\u0631 \u0628\u0647. \u0633\u0623\u0634\u0627\u0631\u0643 \u0622\u064A\u0627\u062A \u0648\u062D\u0643\u0645\u064B\u0627 \u0645\u0646 \u0627\u0644\u0642\u0631\u0622\u0646 \u0644\u062A\u0633\u0627\u0639\u062F\u0643.',
+    suggestions: ['\u0623\u0634\u0639\u0631 \u0628\u0627\u0644\u0636\u064A\u0627\u0639 \u0641\u064A \u0627\u0644\u062D\u064A\u0627\u0629', '\u0623\u0641\u0642\u062F \u0634\u062E\u0635\u064B\u0627 \u0639\u0632\u064A\u0632\u064B\u0627', '\u0623\u0634\u0639\u0631 \u0628\u0627\u0644\u0642\u0644\u0642 \u062A\u062C\u0627\u0647 \u0627\u0644\u0645\u0633\u062A\u0642\u0628\u0644', '\u0644\u062F\u064A \u0645\u0634\u0627\u0643\u0644 \u0639\u0627\u0626\u0644\u064A\u0629']
+  },
+  fr: {
+    title: 'Assistant Coranique IA',
+    subtitle: 'Demande-moi n\'importe quoi \u2014 je r\u00E9pondrai avec la sagesse du Coran',
+    placeholder: 'Tape ton message...',
+    welcome: 'Que la paix soit sur toi. Je suis ton compagnon coranique. Dis-moi ce qui te pr\u00E9occupe \u2014 que ce soit une lutte, une question ou quelque chose que tu traverses. Je partagerai des versets et la sagesse du Coran pour t\'aider.',
+    suggestions: ['Je me sens perdu dans la vie', 'Je pleure une perte', 'Je suis anxieux pour l\'avenir', 'J\'ai des probl\u00E8mes familiaux']
+  }
+};
+
+const responses = {
+  lost: {
+    en: [
+      "Feeling lost is part of the journey. The Quran says: 'And whoever follows My guidance will not go astray nor be miserable.' (20:123). You're not without direction \u2014 sometimes we just need to realign our hearts with the Divine compass. Start small: pray, read a page of Quran, make dua. Clarity comes step by step.",
+      "When you feel directionless, remember this promise: 'Indeed, those who have believed and done righteous deeds \u2014 for them is a reward never to be cut off.' (41:8). Your purpose isn't distant. It's in every good deed, every prayer, every moment you turn back to Him."
+    ],
+    ar: [
+      "\u0627\u0644\u0634\u0639\u0648\u0631 \u0628\u0627\u0644\u0636\u064A\u0627\u0639 \u062C\u0632\u0621 \u0645\u0646 \u0627\u0644\u0631\u062D\u0644\u0629. \u064A\u0642\u0648\u0644 \u0627\u0644\u0642\u0631\u0622\u0646: \u00AB\u0641\u0645\u0646 \u0627\u062A\u0628\u0639 \u0647\u062F\u0627\u064A \u0641\u0644\u0627 \u064A\u0636\u0644 \u0648\u0644\u0627 \u064A\u0634\u0642\u0649\u00BB (20:123). \u0644\u0633\u062A \u0628\u062F\u0648\u0646 \u0627\u062A\u062C\u0627\u0647 \u2014 \u0623\u062D\u064A\u0627\u0646\u064B\u0627 \u0646\u062D\u062A\u0627\u062C \u0641\u0642\u0637 \u0625\u0644\u0649 \u0625\u0639\u0627\u062F\u0629 \u062A\u0648\u062C\u064A\u0647 \u0642\u0644\u0648\u0628\u0646\u0627. \u0627\u0628\u062F\u0623 \u0628\u0627\u0644\u0635\u0644\u0627\u0629\u060C \u0648\u0642\u0631\u0627\u0621\u0629 \u0635\u0641\u062D\u0629 \u0645\u0646 \u0627\u0644\u0642\u0631\u0622\u0646\u060C \u0648\u0627\u0644\u062F\u0639\u0627\u0621. \u0627\u0644\u0648\u0636\u0648\u062D \u064A\u0623\u062A\u064A \u062E\u0637\u0648\u0629 \u0628\u062E\u0637\u0648\u0629.",
+      "\u0639\u0646\u062F\u0645\u0627 \u062A\u0634\u0639\u0631 \u0628\u062F\u0648\u0646 \u0627\u062A\u062C\u0627\u0647\u060C \u062A\u0630\u0643\u0631 \u0647\u0630\u0627 \u0627\u0644\u0648\u0639\u062F: \u00AB\u0625\u0646 \u0627\u0644\u0630\u064A\u0646 \u0622\u0645\u0646\u0648\u0627 \u0648\u0639\u0645\u0644\u0648\u0627 \u0627\u0644\u0635\u0627\u0644\u062D\u0627\u062A \u0644\u0647\u0645 \u0623\u062C\u0631 \u063A\u064A\u0631 \u0645\u0645\u0646\u0648\u0646\u00BB (41:8). \u0647\u062F\u0641\u0643 \u0644\u064A\u0633 \u0628\u0639\u064A\u062F\u064B\u0627. \u0625\u0646\u0647 \u0641\u064A \u0643\u0644 \u0639\u0645\u0644 \u0635\u0627\u0644\u062D\u060C \u0643\u0644 \u0635\u0644\u0627\u0629\u060C \u0643\u0644 \u0644\u062D\u0638\u0629 \u062A\u0639\u0648\u062F \u0641\u064A\u0647\u0627 \u0625\u0644\u064A\u0647."
+    ],
+    fr: [
+      "Se sentir perdu fait partie du chemin. Le Coran dit : 'Et quiconque suit Ma guidance ne s'\u00E9garera pas ni ne sera malheureux.' (20:123). Tu n'es pas sans direction \u2014 parfois nous devons simplement r\u00E9aligner nos c\u0153urs avec la boussole divine. Commence petit : prie, lis une page du Coran, fais dua. La clart\u00E9 vient \u00E9tape par \u00E9tape.",
+      "Quand tu te sens sans direction, souviens-toi de cette promesse : 'Ceux qui croient et accomplissent de bonnes \u0153uvres auront une r\u00E9compense jamais interrompue.' (41:8). Ton but n'est pas lointain. Il est dans chaque bonne action, chaque pri\u00E8re, chaque moment o\u00F9 tu reviens vers Lui."
+    ]
+  },
+  anxious: {
+    en: [
+      "Anxiety tightens the chest, but Allah says: 'Verily, in the remembrance of Allah do hearts find rest.' (13:28). The same heart that races can find peace \u2014 through prayer, through His words, through surrendering what you can't control. Try taking slow breaths and reciting 'Hasbunallah wa ni'mal wakeel'.",
+      "Your worries are known to the One who created you. 'And whoever relies upon Allah \u2014 then He is sufficient for him.' (65:3). You don't need to carry the weight of tomorrow today. Lay your fears before Him in sujood. Trust that He is already working things out for you."
+    ],
+    ar: [
+      "\u0627\u0644\u0642\u0644\u0642 \u064A\u0636\u064A\u0642 \u0627\u0644\u0635\u062F\u0631\u060C \u0648\u0644\u0643\u0646 \u0627\u0644\u0644\u0647 \u064A\u0642\u0648\u0644: \u00AB\u0623\u0644\u0627 \u0628\u0630\u0643\u0631 \u0627\u0644\u0644\u0647 \u062A\u0637\u0645\u0626\u0646 \u0627\u0644\u0642\u0644\u0648\u0628\u00BB (13:28). \u0646\u0641\u0633 \u0627\u0644\u0642\u0644\u0628 \u0627\u0644\u0630\u064A \u064A\u062E\u0641\u0642 \u064A\u0645\u0643\u0646\u0647 \u0623\u0646 \u064A\u062C\u062F \u0627\u0644\u0633\u0644\u0627\u0645 \u2014 \u0645\u0646 \u062E\u0644\u0627\u0644 \u0627\u0644\u0635\u0644\u0627\u0629\u060C \u0648\u0643\u0644\u0627\u0645\u0647\u060C \u0648\u0627\u0644\u062A\u0633\u0644\u064A\u0645 \u0644\u0645\u0627 \u0644\u0627 \u062A\u0633\u062A\u0637\u064A\u0639 \u062A\u062D\u0643\u0645\u0647. \u062C\u0631\u0628 \u0627\u0644\u062A\u0646\u0641\u0633 \u0627\u0644\u0628\u0637\u064A\u0621 \u0648\u0642\u0648\u0644 \u00AB\u062D\u0633\u0628\u0646\u0627 \u0627\u0644\u0644\u0647 \u0648\u0646\u0639\u0645 \u0627\u0644\u0648\u0643\u064A\u0644\u00BB.",
+      "\u0647\u0645\u0648\u0645\u0643 \u0645\u0639\u0644\u0648\u0645\u0629 \u0644\u0644\u0630\u064A \u062E\u0644\u0642\u0643. \u00AB\u0648\u0645\u0646 \u064A\u062A\u0648\u0643\u0644 \u0639\u0644\u0649 \u0627\u0644\u0644\u0647 \u0641\u0647\u0648 \u062D\u0633\u0628\u0647\u00BB (65:3). \u0644\u0633\u062A \u0628\u062D\u0627\u062C\u0629 \u0644\u062A\u062D\u0645\u0644 \u062B\u0642\u0644 \u0627\u0644\u063A\u062F \u0627\u0644\u064A\u0648\u0645. \u0636\u0639 \u0645\u062E\u0627\u0648\u0641\u0643 \u0623\u0645\u0627\u0645\u0647 \u0641\u064A \u0627\u0644\u0633\u062C\u0648\u062F. \u062B\u0642 \u0623\u0646\u0647 \u064A\u0639\u0645\u0644 \u0627\u0644\u0623\u0645\u0648\u0631 \u0644\u0643 \u0628\u0637\u0631\u0642 \u0644\u0627 \u062A\u0633\u062A\u0637\u064A\u0639 \u0631\u0624\u064A\u062A\u0647\u0627 \u0628\u0639\u062F."
+    ],
+    fr: [
+      "L'anxi\u00E9t\u00E9 serre la poitrine, mais Allah dit : 'Certes, c'est par l'\u00E9vocation d'Allah que les c\u0153urs se tranquillisent.' (13:28). Le m\u00EAme c\u0153ur qui s'emballe peut trouver la paix \u2014 par la pri\u00E8re, par Ses paroles, en abandonnant ce que tu ne peux contr\u00F4ler. Respire lentement et r\u00E9cite 'Hasbunallah wa ni'mal wakeel'.",
+      "Tes soucis sont connus de Celui qui t'a cr\u00E9\u00E9. 'Et quiconque place sa confiance en Allah, Il lui suffit.' (65:3). Tu n'as pas besoin de porter le poids de demain aujourd'hui. D\u00E9pose tes craintes devant Lui dans la prosternation. Fais-Lui confiance, Il s'occupe d\u00E9j\u00E0 de tout pour toi."
+    ]
+  },
+  sad: {
+    en: [
+      "Sadness is a sign that you care deeply. The Quran comforts: 'Indeed, with hardship comes ease.' (94:6). This is a promise, not a platitude. The same night that feels endless will give way to dawn. Let yourself feel, but don't let the sadness convince you that this is permanent. Relief is on its way.",
+      "You are not alone in your sadness. Yaqub (AS) said: 'I only complain of my suffering and grief to Allah.' (12:86). Pour it all out to Him in your prayers. He can handle your tears, your anger, your questions. The Creator of the heavens and the earth is also the One who wipes away every tear."
+    ],
+    ar: [
+      "\u0627\u0644\u062D\u0632\u0646 \u062F\u0644\u064A\u0644 \u0639\u0644\u0649 \u0623\u0646\u0643 \u062A\u0647\u062A\u0645 \u0628\u0639\u0645\u0642. \u064A\u0639\u0632\u064A\u0643 \u0627\u0644\u0642\u0631\u0622\u0646: \u00AB\u0625\u0646 \u0645\u0639 \u0627\u0644\u0639\u0633\u0631 \u064A\u0633\u0631\u064B\u0627\u00BB (94:6). \u0647\u0630\u0627 \u0648\u0639\u062F\u060C \u0644\u064A\u0633 \u0645\u062C\u0631\u062F \u0643\u0644\u0627\u0645. \u0646\u0641\u0633 \u0627\u0644\u0644\u064A\u0644 \u0627\u0644\u0630\u064A \u064A\u0628\u062F\u0648 \u0644\u0627 \u0646\u0647\u0627\u064A\u0629 \u0644\u0647 \u0633\u064A\u0646\u062C\u0644\u064A \u0639\u0646 \u0627\u0644\u0641\u062C\u0631. \u0627\u0633\u0645\u062D \u0644\u0646\u0641\u0633\u0643 \u0628\u0627\u0644\u0634\u0639\u0648\u0631\u060C \u0648\u0644\u0643\u0646 \u0644\u0627 \u062A\u062F\u0639 \u0627\u0644\u062D\u0632\u0646 \u064A\u0642\u0646\u0639\u0643 \u0623\u0646 \u0647\u0630\u0627 \u062F\u0627\u0626\u0645. \u0627\u0644\u0641\u0631\u062C \u0642\u0627\u062F\u0645.",
+      "\u0644\u0633\u062A \u0648\u062D\u064A\u062F\u064B\u0627 \u0641\u064A \u062D\u0632\u0646\u0643. \u0642\u0627\u0644 \u064A\u0639\u0642\u0648\u0628: \u00AB\u0625\u0646\u0645\u0627 \u0623\u0634\u0643\u0648 \u0628\u062B\u064A \u0648\u062D\u0632\u0646\u064A \u0625\u0644\u0649 \u0627\u0644\u0644\u0647\u00BB (12:86). \u0627\u0641\u0631\u063A \u0643\u0644 \u0634\u064A\u0621 \u0641\u064A \u0635\u0644\u0627\u062A\u0643. \u0647\u0648 \u064A\u0633\u062A\u0637\u064A\u0639 \u0623\u0646 \u064A\u062A\u062D\u0645\u0644 \u062F\u0645\u0648\u0639\u0643 \u0648\u063A\u0636\u0628\u0643 \u0648\u0623\u0633\u0626\u0644\u062A\u0643. \u062E\u0627\u0644\u0642 \u0627\u0644\u0633\u0645\u0627\u0648\u0627\u062A \u0648\u0627\u0644\u0623\u0631\u0636 \u0647\u0648 \u0623\u064A\u0636\u064B\u0627 \u0645\u0646 \u064A\u0645\u0633\u062D \u0643\u0644 \u062F\u0645\u0639\u0629."
+    ],
+    fr: [
+      "La tristesse est le signe d'un c\u0153ur profond. Le Coran r\u00E9conforte : 'Certes, avec la difficult\u00E9 vient la facilit\u00E9.' (94:6). C'est une promesse, pas une platitude. La m\u00EAme nuit qui semble sans fin c\u00E8dera place \u00E0 l'aube. Laisse-toi ressentir, mais ne laisse pas la tristesse te convaincre que c'est permanent. Le soulagement arrive.",
+      "Tu n'es pas seul dans ta tristesse. Yaqub (AS) a dit : 'Je ne me plains de mon chagrin et de ma tristesse qu'aupr\u00E8s d'Allah.' (12:86). D\u00E9verse tout dans tes pri\u00E8res. Il peut supporter tes larmes, ta col\u00E8re, tes questions. Le Cr\u00E9ateur des cieux et de la terre est aussi Celui qui essuie chaque larme."
+    ]
+  },
+  grief: {
+    en: [
+      "Losing someone you love is one of the hardest trials. The Quran reminds us: 'Indeed, to Allah we belong and to Him we shall return.' (2:156). Your loved one has returned to their Creator, and there is profound peace in that. Your grief is a testament to your love. Make dua for them \u2014 it reaches their soul and heals yours too.",
+      "Grief takes time, and that's okay. Allah says: 'And We will surely test you with something of fear and hunger and a loss of wealth and lives and fruits, but give good tidings to the patient.' (2:155). Your patience through this loss is not unnoticed. Hold onto the hope of reunion in Jannah."
+    ],
+    ar: [
+      "\u0641\u0642\u062F\u0627\u0646 \u0634\u062E\u0635 \u062A\u062D\u0628\u0647 \u0647\u0648 \u0623\u0635\u0639\u0628 \u0627\u0644\u0627\u062E\u062A\u0628\u0627\u0631\u0627\u062A. \u064A\u0630\u0643\u0631\u0646\u0627 \u0627\u0644\u0642\u0631\u0622\u0646: \u00AB\u0625\u0646\u0627 \u0644\u0644\u0647 \u0648\u0625\u0646\u0627 \u0625\u0644\u064A\u0647 \u0631\u0627\u062C\u0639\u0648\u0646\u00BB (2:156). \u0645\u0646 \u062A\u062D\u0628 \u0639\u0627\u062F \u0625\u0644\u0649 \u062E\u0627\u0644\u0642\u0647\u060C \u0648\u0641\u064A \u0630\u0644\u0643 \u0633\u0644\u0627\u0645 \u0639\u0645\u064A\u0642. \u062D\u0632\u0646\u0643 \u0634\u0647\u0627\u062F\u0629 \u0639\u0644\u0649 \u062D\u0628\u0643. \u0627\u062F\u0639 \u0644\u0647\u0645 \u2014 \u0625\u0646\u0647 \u064A\u0635\u0644 \u0625\u0644\u0649 \u0623\u0631\u0648\u0627\u062D\u0647\u0645 \u0648\u064A\u0634\u0641\u064A \u0642\u0644\u0628\u0643.",
+      "\u0627\u0644\u062D\u0632\u0646 \u064A\u062D\u062A\u0627\u062C \u0648\u0642\u062A\u064B\u0627\u060C \u0648\u0647\u0630\u0627 \u0637\u0628\u064A\u0639\u064A. \u064A\u0642\u0648\u0644 \u0627\u0644\u0644\u0647: \u00AB\u0648\u0644\u0646\u0628\u0644\u0648\u0646\u0643\u0645 \u0628\u0634\u064A\u0621 \u0645\u0646 \u0627\u0644\u062E\u0648\u0641 \u0648\u0627\u0644\u062C\u0648\u0639 \u0648\u0646\u0642\u0635 \u0645\u0646 \u0627\u0644\u0623\u0645\u0648\u0627\u0644 \u0648\u0627\u0644\u0623\u0646\u0641\u0633 \u0648\u0627\u0644\u062B\u0645\u0631\u0627\u062A\u060C \u0648\u0628\u0634\u0631 \u0627\u0644\u0635\u0627\u0628\u0631\u064A\u0646\u00BB (2:155). \u0635\u0628\u0631\u0643 \u0644\u064A\u0633 \u0645\u0631\u0648\u0631\u064B\u0627. \u062A\u0645\u0633\u0643 \u0628\u0623\u0645\u0644 \u0627\u0644\u0644\u0642\u0627\u0621 \u0641\u064A \u0627\u0644\u062C\u0646\u0629."
+    ],
+    fr: [
+      "Perdre quelqu'un que tu aimes est l'une des \u00E9preuves les plus difficiles. Le Coran nous rappelle : 'Nous sommes \u00E0 Allah et vers Lui nous retournerons.' (2:156). Ton \u00EAtre cher est retourn\u00E9 vers son Cr\u00E9ateur, et il y a une paix profonde l\u00E0-dedans. Fais dua pour eux \u2014 cela atteint leur \u00E2me et gu\u00E9rit aussi la tienne.",
+      "Le deuil prend du temps, et c'est normal. Allah dit : 'Nous vous \u00E9prouverons par un peu de peur, de faim, de perte de biens, de personnes et de fruits. Et fais la bonne annonce aux endurants.' (2:155). Ta patience dans cette perte n'est pas ignor\u00E9e. Garde l'espoir des retrouvailles au Paradis."
+    ]
+  },
+  family: {
+    en: [
+      "Family can be our greatest blessing and our greatest test. The Quran advises: 'And We have enjoined upon man goodness to his parents.' (46:15). Even when it's hard, even when you disagree, kindness is the path. Set boundaries with love, forgive without forgetting your worth, and make dua for unity.",
+      "Family conflicts are painful, but the Quran gives a beautiful principle: 'Whoever pardons and makes reconciliation \u2014 his reward is with Allah.' (42:40). You don't have to win the argument. You can choose peace. Sometimes the strongest thing you can do is reach out first."
+    ],
+    ar: [
+      "\u0627\u0644\u0639\u0627\u0626\u0644\u0629 \u0642\u062F \u062A\u0643\u0648\u0646 \u0623\u0639\u0638\u0645 \u0646\u0639\u0645\u0629 \u0648\u0623\u0639\u0638\u0645 \u0627\u062E\u062A\u0628\u0627\u0631. \u064A\u0648\u0635\u064A \u0627\u0644\u0642\u0631\u0622\u0646: \u00AB\u0648\u0648\u0635\u064A\u0646\u0627 \u0627\u0644\u0625\u0646\u0633\u0627\u0646 \u0628\u0648\u0627\u0644\u062F\u064A\u0647 \u0625\u062D\u0633\u0627\u0646\u064B\u0627\u00BB (46:15). \u062D\u062A\u0649 \u0639\u0646\u062F\u0645\u0627 \u064A\u0643\u0648\u0646 \u0627\u0644\u0623\u0645\u0631 \u0635\u0639\u0628\u064B\u0627\u060C \u0627\u0644\u0644\u0637\u0641 \u0647\u0648 \u0627\u0644\u0637\u0631\u064A\u0642. \u0627\u0636\u0639 \u062D\u062F\u0648\u062F\u064B\u0627 \u0628\u062D\u0628\u060C \u0648\u0627\u0639\u0641 \u0628\u062F\u0648\u0646 \u0623\u0646 \u062A\u0646\u0633\u0649 \u0642\u064A\u0645\u062A\u0643\u060C \u0648\u0627\u062F\u0639 \u0644\u0644\u0648\u062D\u062F\u0629.",
+      "\u0627\u0644\u0646\u0632\u0627\u0639\u0627\u062A \u0627\u0644\u0639\u0627\u0626\u0644\u064A\u0629 \u0645\u0624\u0644\u0645\u0629\u060C \u0648\u0644\u0643\u0646 \u0627\u0644\u0642\u0631\u0622\u0646 \u064A\u0639\u0637\u064A \u0645\u0628\u062F\u0623\u064B \u062C\u0645\u064A\u0644\u064B\u0627: \u00AB\u0648\u0645\u0646 \u0639\u0641\u0627 \u0648\u0623\u0635\u0644\u062D \u0641\u0623\u062C\u0631\u0647 \u0639\u0644\u0649 \u0627\u0644\u0644\u0647\u00BB (42:40). \u0644\u0633\u062A \u0645\u0636\u0637\u0631\u064B\u0627 \u0644\u0641\u0648\u0632 \u0627\u0644\u062C\u062F\u0627\u0644. \u064A\u0645\u0643\u0646\u0643 \u0627\u062E\u062A\u064A\u0627\u0631 \u0627\u0644\u0633\u0644\u0627\u0645. \u0623\u062D\u064A\u0627\u0646\u064B\u0627 \u0623\u0642\u0648\u0649 \u0645\u0627 \u064A\u0645\u0643\u0646\u0643 \u0641\u0639\u0644\u0647 \u0647\u0648 \u0627\u0644\u0645\u0628\u0627\u062F\u0631\u0629."
+    ],
+    fr: [
+      "La famille peut \u00EAtre notre plus grande b\u00E9n\u00E9diction et notre plus grande \u00E9preuve. Le Coran conseille : 'Et Nous avons enjoint \u00E0 l'homme la bont\u00E9 envers ses parents.' (46:15). M\u00EAme quand c'est difficile, m\u00EAme quand vous \u00EAtes en d\u00E9saccord, la bienveillance est la voie. Fixe des limites avec amour, pardonne sans oublier ta valeur.",
+      "Les conflits familiaux sont douloureux, mais le Coran donne un beau principe : 'Quiconque pardonne et se r\u00E9concilie \u2014 sa r\u00E9compense est aupr\u00E8s d'Allah.' (42:40). Tu n'as pas besoin de gagner la dispute. Tu peux choisir la paix. Parfois, la chose la plus forte que tu puisses faire est de tendre la main en premier."
+    ]
+  },
+  lonely: {
+    en: [
+      "Loneliness can feel like the heaviest burden. But Allah says: 'And He is with you wherever you are.' (57:4). You are never truly alone. The One who created you is closer to you than your own jugular vein. When no one else understands, He does. When no one is there, He is. Talk to Him \u2014 He's listening.",
+      "Your loneliness is a call to deepen your connection with the One who never leaves. Your solitude is not punishment \u2014 it's an invitation. Use this time to build a relationship with your Creator that no one can take away."
+    ],
+    ar: [
+      "\u0627\u0644\u0648\u062D\u062F\u0629 \u0642\u062F \u062A\u0634\u0639\u0631 \u0643\u0623\u062B\u0642\u0644 \u0627\u0644\u0623\u0639\u0628\u0627\u0621. \u0648\u0644\u0643\u0646 \u0627\u0644\u0644\u0647 \u064A\u0642\u0648\u0644: \u00AB\u0648\u0647\u0648 \u0645\u0639\u0643\u0645 \u0623\u064A\u0646 \u0645\u0627 \u0643\u0646\u062A\u0645\u00BB (57:4). \u0623\u0646\u062A \u0644\u0633\u062A \u0648\u062D\u064A\u062F\u064B\u0627 \u062D\u0642\u064B\u0627. \u0627\u0644\u0630\u064A \u062E\u0644\u0642\u0643 \u0623\u0642\u0631\u0628 \u0625\u0644\u064A\u0643 \u0645\u0646 \u062D\u0628\u0644 \u0627\u0644\u0648\u0631\u064A\u062F. \u062D\u064A\u0646 \u0644\u0627 \u064A\u0641\u0647\u0645\u0643 \u0623\u062D\u062F\u060C \u0647\u0648 \u064A\u0641\u0647\u0645. \u062A\u062D\u062F\u062B \u0625\u0644\u064A\u0647 \u2014 \u0625\u0646\u0647 \u064A\u0633\u0645\u0639.",
+      "\u0648\u062D\u062F\u062A\u0643 \u0647\u064A \u062F\u0639\u0648\u0629 \u0644\u062A\u0639\u0645\u064A\u0642 \u0639\u0644\u0627\u0642\u062A\u0643 \u0628\u0627\u0644\u0630\u064A \u0644\u0627 \u064A\u062A\u0631\u0643\u0643 \u0623\u0628\u062F\u064B\u0627. \u0639\u0632\u0644\u062A\u0643 \u0644\u064A\u0633\u062A \u0639\u0642\u0648\u0628\u0629 \u2014 \u0628\u0644 \u062F\u0639\u0648\u0629. \u0627\u0633\u062A\u063A\u0644 \u0647\u0630\u0627 \u0627\u0644\u0648\u0642\u062A \u0644\u0628\u0646\u0627\u0621 \u0639\u0644\u0627\u0642\u0629 \u0645\u0639 \u062E\u0627\u0644\u0642\u0643 \u0644\u0627 \u064A\u0645\u0643\u0646 \u0644\u0623\u062D\u062F \u0623\u0646 \u064A\u0633\u0644\u0628\u0647\u0627."
+    ],
+    fr: [
+      "La solitude peut sembler le plus lourd des fardeaux. Mais Allah dit : 'Il est avec vous o\u00F9 que vous soyez.' (57:4). Tu n'es jamais vraiment seul. Celui qui t'a cr\u00E9\u00E9 est plus proche de toi que ta propre veine jugulaire. Quand personne ne comprend, Lui comprend. Parle-Lui \u2014 Il t'\u00E9coute.",
+      "Ta solitude est un appel \u00E0 approfondir ta connexion avec Celui qui ne part jamais. Ta solitude n'est pas une punition \u2014 c'est une invitation. Utilise ce temps pour construire une relation avec ton Cr\u00E9ateur que personne ne peut t'enlever."
+    ]
+  },
+  angry: {
+    en: [
+      "Anger is fire, and the Quran guides us: 'Those who restrain anger and pardon people \u2014 and Allah loves the doers of good.' (3:134). Pause before you speak. The strongest person isn't the one who wins an argument \u2014 it's the one who controls themselves when angry. Take wudu. Sit down. Breathe. You choose.",
+      "Your anger is valid, but how you handle it defines you. 'Whoever suppresses his anger and forgives \u2014 indeed, that is of the matters of great resolve.' (42:37). Letting go isn't losing. It's rising above. Your peace is worth more than being right."
+    ],
+    ar: [
+      "\u0627\u0644\u063A\u0636\u0628 \u0646\u0627\u0631\u060C \u0648\u0627\u0644\u0642\u0631\u0622\u0646 \u064A\u0631\u0634\u062F\u0646\u0627: \u00AB\u0648\u0627\u0644\u0643\u0627\u0638\u0645\u064A\u0646 \u0627\u0644\u063A\u064A\u0638 \u0648\u0627\u0644\u0639\u0627\u0641\u064A\u0646 \u0639\u0646 \u0627\u0644\u0646\u0627\u0633\u061B \u0648\u0627\u0644\u0644\u0647 \u064A\u062D\u0628 \u0627\u0644\u0645\u062D\u0633\u0646\u064A\u0646\u00BB (3:134). \u062A\u0648\u0642\u0641 \u0642\u0628\u0644 \u0623\u0646 \u062A\u062A\u0643\u0644\u0645. \u0623\u0642\u0648\u0649 \u0634\u062E\u0635 \u0644\u064A\u0633 \u0645\u0646 \u064A\u0631\u0628\u062D \u0627\u0644\u062C\u062F\u0627\u0644\u060C \u0628\u0644 \u0645\u0646 \u064A\u0633\u064A\u0637\u0631 \u0639\u0644\u0649 \u0646\u0641\u0633\u0647 \u0639\u0646\u062F \u0627\u0644\u063A\u0636\u0628. \u062A\u0648\u0636\u0623. \u0627\u062C\u0644\u0633. \u062A\u0646\u0641\u0633. \u0623\u0646\u062A \u062A\u062E\u062A\u0627\u0631.",
+      "\u063A\u0636\u0628\u0643 \u0645\u0634\u0631\u0648\u0639\u060C \u0648\u0644\u0643\u0646 \u0643\u064A\u0641\u064A\u0629 \u062A\u0639\u0627\u0645\u0644\u0643 \u0645\u0639\u0647 \u0647\u064A \u0645\u0627 \u062A\u062D\u062F\u062F\u0643. \u00AB\u0648\u0645\u0646 \u064A\u063A\u0641\u0631 \u0648\u064A\u0635\u0641\u062D \u0641\u0625\u0646 \u0630\u0644\u0643 \u0644\u0645\u0646 \u0639\u0632\u0645 \u0627\u0644\u0623\u0645\u0648\u0631\u00BB (42:37). \u0627\u0644\u062A\u062E\u0644\u064A \u0644\u064A\u0633 \u062E\u0633\u0627\u0631\u0629. \u0625\u0646\u0647 \u0627\u0631\u062A\u0642\u0627\u0621. \u0633\u0644\u0627\u0645\u0643 \u0623\u062B\u0645\u0646 \u0645\u0646 \u0623\u0646 \u062A\u0643\u0648\u0646 \u0639\u0644\u0649 \u0635\u0648\u0627\u0628."
+    ],
+    fr: [
+      "La col\u00E8re est un feu, et le Coran nous guide : 'Ceux qui dominent leur col\u00E8re et pardonnent aux gens \u2014 et Allah aime les bienfaisants.' (3:134). Pause avant de parler. La personne la plus forte n'est pas celle qui gagne une dispute \u2014 c'est celle qui se ma\u00EEtrise en col\u00E8re. Fais les ablutions. Assieds-toi. Respire. Tu choisis.",
+      "Ta col\u00E8re est valide, mais comment tu la g\u00E8res te d\u00E9finit. 'Quiconque pardonne et se r\u00E9concilie \u2014 cela fait partie des grandes r\u00E9solutions.' (42:37). L\u00E2cher prise n'est pas perdre. C'est s'\u00E9lever. Ta paix vaut plus que d'avoir raison."
+    ]
+  },
+  hopeless: {
+    en: [
+      "Never, ever give up on Allah's mercy. He says: 'Do not despair of the mercy of Allah. Indeed, Allah forgives all sins. Indeed, it is He who is the Forgiving, the Merciful.' (39:53). No matter how far you think you've gone, His door is wide open. Turn back. One sincere step towards Him and He runs to you.",
+      "Hopelessness is a trap from Shaytan. The Quran reminds us: 'And who despairs of the mercy of his Lord except those who are astray?' (15:56). Your story isn't over. Your worst moments don't define you. Allah's mercy is vaster than your mistakes, deeper than your despair."
+    ],
+    ar: [
+      "\u0644\u0627 \u062A\u064A\u0623\u0633 \u0623\u0628\u062F\u064B\u0627 \u0645\u0646 \u0631\u062D\u0645\u0629 \u0627\u0644\u0644\u0647. \u064A\u0642\u0648\u0644: \u00AB\u0642\u0644 \u064A\u0627 \u0639\u0628\u0627\u062F\u064A \u0627\u0644\u0630\u064A\u0646 \u0623\u0633\u0631\u0641\u0648\u0627 \u0639\u0644\u0649 \u0623\u0646\u0641\u0633\u0647\u0645 \u0644\u0627 \u062A\u0642\u0646\u0637\u0648\u0627 \u0645\u0646 \u0631\u062D\u0645\u0629 \u0627\u0644\u0644\u0647\u00BB (39:53). \u0628\u063A\u0636 \u0627\u0644\u0646\u0638\u0631 \u0639\u0646 \u0645\u062F\u0649 \u0628\u0639\u062F\u0643\u060C \u0628\u0627\u0628\u0647 \u0645\u0641\u062A\u0648\u062D \u0639\u0644\u0649 \u0645\u0635\u0631\u0627\u0639\u0647. \u0639\u062F. \u062E\u0637\u0648\u0629 \u0648\u0627\u062D\u062F\u0629 \u0635\u0627\u062F\u0642\u0629 \u0646\u062D\u0648\u0647 \u0648\u064A\u0631\u0643\u0636 \u0625\u0644\u064A\u0643.",
+      "\u0627\u0644\u064A\u0623\u0633 \u0641\u062E \u0645\u0646 \u0627\u0644\u0634\u064A\u0637\u0627\u0646. \u064A\u0630\u0643\u0631\u0646\u0627 \u0627\u0644\u0642\u0631\u0622\u0646: \u00AB\u0648\u0645\u0646 \u064A\u0642\u0646\u0637 \u0645\u0646 \u0631\u062D\u0645\u0629 \u0631\u0628\u0647 \u0625\u0644\u0627 \u0627\u0644\u0636\u0627\u0644\u0648\u0646\u00BB (15:56). \u0642\u0635\u062A\u0643 \u0644\u0645 \u062A\u0646\u062A\u0647. \u0623\u0633\u0648\u0621 \u0644\u062D\u0638\u0627\u062A\u0643 \u0644\u0627 \u062A\u062D\u062F\u062F\u0643. \u0631\u062D\u0645\u0629 \u0627\u0644\u0644\u0647 \u0623\u0648\u0633\u0639 \u0645\u0646 \u0623\u062E\u0637\u0627\u0626\u0643."
+    ],
+    fr: [
+      "N'abandonne jamais la mis\u00E9ricorde d'Allah. Il dit : 'Ne d\u00E9sesp\u00E9rez pas de la mis\u00E9ricorde d'Allah. Allah pardonne tous les p\u00E9ch\u00E9s.' (39:53). Peu importe jusqu'o\u00F9 tu penses \u00EAtre all\u00E9, Sa porte est grande ouverte. Reviens. Un pas sinc\u00E8re vers Lui et Il court vers toi.",
+      "Le d\u00E9sespoir est un pi\u00E8ge de Shaytan. Le Coran nous rappelle : 'Et qui d\u00E9sesp\u00E8re de la mis\u00E9ricorde de son Seigneur, sinon ceux qui s'\u00E9garent ?' (15:56). Ton histoire n'est pas finie. Tes pires moments ne te d\u00E9finissent pas. La mis\u00E9ricorde d'Allah est plus vaste que tes erreurs."
+    ]
+  },
+  guilty: {
+    en: [
+      "Guilt can crush you or free you. The Quran offers the most beautiful hope: 'Except for those who repent, believe, and do righteous work \u2014 for them Allah will replace their evil deeds with good.' (25:70). Your past doesn't chain you. Repentance isn't just forgiveness \u2014 it's transformation. Your sins become good deeds.",
+      "Shame can make you feel unworthy, but remember: 'Say, O My servants who have transgressed against themselves, do not despair of the mercy of Allah.' (39:53). Allah calls you 'My servants' even when you've sinned. That's love. Don't let guilt keep you from Him. Run back to Him."
+    ],
+    ar: [
+      "\u0627\u0644\u0630\u0646\u0628 \u064A\u0645\u0643\u0646 \u0623\u0646 \u064A\u0633\u062D\u0642\u0643 \u0623\u0648 \u064A\u062D\u0631\u0631\u0643. \u064A\u0642\u062F\u0645 \u0627\u0644\u0642\u0631\u0622\u0646 \u0623\u062C\u0645\u0644 \u0627\u0644\u0623\u0645\u0644: \u00AB\u0625\u0644\u0627 \u0645\u0646 \u062A\u0627\u0628 \u0648\u0622\u0645\u0646 \u0648\u0639\u0645\u0644 \u0639\u0645\u0644\u064B\u0627 \u0635\u0627\u0644\u062D\u064B\u0627 \u0641\u0623\u0648\u0644\u0626\u0643 \u064A\u0628\u062F\u0644 \u0627\u0644\u0644\u0647 \u0633\u064A\u0626\u0627\u062A\u0647\u0645 \u062D\u0633\u0646\u0627\u062A\u00BB (25:70). \u0645\u0627\u0636\u064A\u0643 \u0644\u0627 \u064A\u0642\u064A\u062F\u0643. \u0627\u0644\u062A\u0648\u0628\u0629 \u0644\u064A\u0633\u062A \u0645\u062C\u0631\u062F \u0645\u063A\u0641\u0631\u0629\u060C \u0628\u0644 \u062A\u062D\u0648\u0644. \u0630\u0646\u0648\u0628\u0643 \u062A\u0635\u0628\u062D \u062D\u0633\u0646\u0627\u062A.",
+      "\u0627\u0644\u062E\u0632\u064A \u064A\u062C\u0639\u0644\u0643 \u062A\u0634\u0639\u0631 \u0628\u0639\u062F\u0645 \u0627\u0644\u0627\u0633\u062A\u062D\u0642\u0627\u0642\u060C \u0648\u0644\u0643\u0646 \u062A\u0630\u0643\u0631: \u00AB\u0642\u0644 \u064A\u0627 \u0639\u0628\u0627\u062F\u064A \u0627\u0644\u0630\u064A\u0646 \u0623\u0633\u0631\u0641\u0648\u0627 \u0639\u0644\u0649 \u0623\u0646\u0641\u0633\u0647\u0645 \u0644\u0627 \u062A\u0642\u0646\u0637\u0648\u0627 \u0645\u0646 \u0631\u062D\u0645\u0629 \u0627\u0644\u0644\u0647\u00BB (39:53). \u0627\u0644\u0644\u0647 \u064A\u0646\u0627\u062F\u064A\u0643 \u00AB\u064A\u0627 \u0639\u0628\u0627\u062F\u064A\u00BB \u062D\u062A\u0649 \u062D\u064A\u0646 \u0623\u062E\u0637\u0623\u062A. \u0647\u0630\u0627 \u062D\u0628. \u0644\u0627 \u062A\u062F\u0639 \u0627\u0644\u0630\u0646\u0628 \u064A\u0628\u0639\u062F\u0643 \u0639\u0646\u0647. \u0627\u0631\u0643\u0636 \u0625\u0644\u064A\u0647."
+    ],
+    fr: [
+      "La culpabilit\u00E9 peut t'\u00E9craser ou te lib\u00E9rer. Le Coran offre le plus bel espoir : 'Sauf celui qui se repent, croit et accomplit une bonne \u0153uvre \u2014 Allah changera ses mauvaises actions en bonnes.' (25:70). Ton pass\u00E9 ne t'encha\u00EEne pas. Le repentir n'est pas juste un pardon \u2014 c'est une transformation. Tes p\u00E9ch\u00E9s deviennent de bonnes actions.",
+      "La honte peut te faire sentir indigne, mais souviens-toi : 'Ne d\u00E9sesp\u00E9rez pas de la mis\u00E9ricorde d'Allah.' (39:53). Allah t'appelle 'Mes serviteurs' m\u00EAme quand tu as p\u00E9ch\u00E9. C'est de l'amour. Ne laisse pas la culpabilit\u00E9 t'\u00E9loigner de Lui. Reviens vers Lui en courant."
+    ]
+  },
+  grateful: {
+    en: [
+      "Gratitude is the key that unlocks more blessings. 'If you are grateful, I will surely increase you.' (14:7). Your thankfulness isn't for Allah \u2014 it's for you. It changes how you see the world. Try listing three things you're grateful for right now. You'll feel a shift. The more you thank, the more you receive.",
+      "You are already surrounded by blessings you may not notice. 'And He gave you from all you asked of Him. And if you count the favor of Allah, you could not enumerate them.' (14:34). Gratitude isn't about ignoring struggles \u2014 it's about recognizing grace in the midst of them."
+    ],
+    ar: [
+      "\u0627\u0644\u0634\u0643\u0631 \u0647\u0648 \u0627\u0644\u0645\u0641\u062A\u0627\u062D \u0627\u0644\u0630\u064A \u064A\u0641\u062A\u062D \u0627\u0644\u0628\u0631\u0643\u0627\u062A. \u00AB\u0648\u0625\u0630 \u062A\u0623\u0630\u0646 \u0631\u0628\u0643\u0645 \u0644\u0626\u0646 \u0634\u0643\u0631\u062A\u0645 \u0644\u0623\u0632\u064A\u062F\u0646\u0643\u0645\u00BB (14:7). \u0634\u0643\u0631\u0643 \u0644\u064A\u0633 \u0644\u0644\u0647 \u2014 \u0628\u0644 \u0644\u0643. \u064A\u063A\u064A\u0631 \u0643\u064A\u0641 \u062A\u0631\u0649 \u0627\u0644\u0639\u0627\u0644\u0645. \u062C\u0631\u0628 \u0633\u0631\u062F \u062B\u0644\u0627\u062B\u0629 \u0623\u0634\u064A\u0627\u0621 \u0623\u0646\u062A \u0634\u0627\u0643\u0631 \u0644\u0647\u0627 \u0627\u0644\u0622\u0646.",
+      "\u0623\u0646\u062A \u0645\u062D\u0627\u0637 \u0628\u0627\u0644\u0628\u0631\u0643\u0627\u062A \u0627\u0644\u062A\u064A \u0642\u062F \u0644\u0627 \u062A\u0644\u0627\u062D\u0638\u0647\u0627. \u00AB\u0648\u0622\u062A\u0627\u0643\u0645 \u0645\u0646 \u0643\u0644 \u0645\u0627 \u0633\u0623\u0644\u062A\u0645\u0648\u0647\u061B \u0648\u0625\u0646 \u062A\u0639\u062F\u0648\u0627 \u0646\u0639\u0645\u0629 \u0627\u0644\u0644\u0647 \u0644\u0627 \u062A\u062D\u0635\u0648\u0647\u0627\u00BB (14:34). \u0627\u0644\u0634\u0643\u0631 \u0644\u064A\u0633 \u0639\u0646 \u062A\u062C\u0627\u0647\u0644 \u0627\u0644\u0635\u0639\u0648\u0628\u0627\u062A \u2014 \u0628\u0644 \u0639\u0646 \u0625\u062F\u0631\u0627\u0643 \u0627\u0644\u0646\u0639\u0645\u0629 \u0641\u064A \u0648\u0633\u0637\u0647\u0627."
+    ],
+    fr: [
+      "La gratitude est la cl\u00E9 qui ouvre davantage de b\u00E9n\u00E9dictions. 'Si vous \u00EAtes reconnaissants, Je vous donnerai davantage.' (14:7). Ta gratitude n'est pas pour Allah \u2014 elle est pour toi. Elle change ta fa\u00E7on de voir le monde. Essaie de lister trois choses pour lesquelles tu es reconnaissant maintenant.",
+      "Tu es d\u00E9j\u00E0 entour\u00E9 de b\u00E9n\u00E9dictions que tu ne remarques peut-\u00EAtre pas. 'Il vous a accord\u00E9 tout ce que vous Lui avez demand\u00E9. Si vous comptiez les bienfaits d'Allah, vous ne pourriez pas les \u00E9num\u00E9rer.' (14:34). La gratitude n'ignore pas les difficult\u00E9s \u2014 elle reconna\u00EEt la gr\u00E2ce au milieu d'elles."
+    ]
+  },
+  confused: {
+    en: [
+      "Confusion is a sign you're seeking truth. The Quran says: 'And We have sent down to you the Book as clarification for all things.' (16:89). When the world feels unclear, go back to the source of clarity. The Quran is a light that cuts through fog. Start reading it with translation. Let it speak to your situation.",
+      "You don't need to have it all figured out. 'And whoever fears Allah \u2014 He will make for him a way out.' (65:2). When you put your trust in Him, He opens doors you didn't even know existed. Seek guidance through istikhara, through sincere dua, and through the counsel of those who know."
+    ],
+    ar: [
+      "\u0627\u0644\u0627\u0631\u062A\u0628\u0627\u0643 \u062F\u0644\u064A\u0644 \u0639\u0644\u0649 \u0623\u0646\u0643 \u062A\u0628\u062D\u062B \u0639\u0646 \u0627\u0644\u062D\u0642\u064A\u0642\u0629. \u064A\u0642\u0648\u0644 \u0627\u0644\u0642\u0631\u0622\u0646: \u00AB\u0648\u0646\u0632\u0644\u0646\u0627 \u0639\u0644\u064A\u0643 \u0627\u0644\u0643\u062A\u0627\u0628 \u062A\u0628\u064A\u0627\u0646\u064B\u0627 \u0644\u0643\u0644 \u0634\u064A\u0621\u00BB (16:89). \u0639\u0646\u062F\u0645\u0627 \u064A\u0628\u062F\u0648 \u0627\u0644\u0639\u0627\u0644\u0645 \u063A\u0627\u0645\u0636\u064B\u0627\u060C \u0639\u062F \u0625\u0644\u0649 \u0645\u0635\u062F\u0631 \u0627\u0644\u0648\u0636\u0648\u062D. \u0627\u0644\u0642\u0631\u0622\u0646 \u0646\u0648\u0631 \u064A\u0642\u0637\u0639 \u0627\u0644\u0636\u0628\u0627\u0628. \u0627\u0628\u062F\u0623 \u0628\u0642\u0631\u0627\u0621\u062A\u0647 \u0645\u0639 \u0627\u0644\u062A\u0631\u062C\u0645\u0629.",
+      "\u0644\u0633\u062A \u0645\u0636\u0637\u0631\u064B\u0627 \u0644\u0645\u0639\u0631\u0641\u0629 \u0643\u0644 \u0634\u064A\u0621. \u00AB\u0648\u0645\u0646 \u064A\u062A\u0642 \u0627\u0644\u0644\u0647 \u064A\u062C\u0639\u0644 \u0644\u0647 \u0645\u062E\u0631\u062C\u064B\u0627\u00BB (65:2). \u0639\u0646\u062F\u0645\u0627 \u062A\u062B\u0642 \u0628\u0647\u060C \u064A\u0641\u062A\u062D \u0644\u0643 \u0623\u0628\u0648\u0627\u0628\u064B\u0627 \u0644\u0645 \u062A\u0643\u0646 \u062A\u0639\u0644\u0645 \u0628\u0648\u062C\u0648\u062F\u0647\u0627. \u0627\u0637\u0644\u0628 \u0627\u0644\u0647\u062F\u0627\u064A\u0629 \u0639\u0628\u0631 \u0627\u0644\u0627\u0633\u062A\u062E\u0627\u0631\u0629 \u0648\u0627\u0644\u062F\u0639\u0627\u0621."
+    ],
+    fr: [
+      "La confusion est le signe que tu cherches la v\u00E9rit\u00E9. Le Coran dit : 'Nous avons fait descendre sur toi le Livre comme un expos\u00E9 clair de toute chose.' (16:89). Quand le monde semble flou, reviens \u00E0 la source de clart\u00E9. Le Coran est une lumi\u00E8re qui traverse le brouillard.",
+      "Tu n'as pas besoin de tout comprendre. 'Quiconque craint Allah \u2014 Il lui donnera une issue.' (65:2). Quand tu Lui fais confiance, Il ouvre des portes que tu ne soup\u00E7onnais pas. Cherche la guidance par l'istikharah, par le dua sinc\u00E8re."
+    ]
+  },
+  doubt: {
+    en: [
+      "Doubt is part of the human journey. The Quran addresses it gently: 'Thus We showed Abraham the kingdom of the heavens and the earth that he would be among the certain.' (6:75). Even the greatest prophets sought certainty. Ask Allah with sincerity. Seek knowledge. Your questions are not weakness \u2014 they're a path to stronger faith.",
+      "When doubts creep in, remember: 'Allah is the Light of the heavens and the earth.' (24:35). Light dispels darkness. Increase in good deeds, surround yourself with righteous company, and keep asking. Certainty is built step by step, dua by dua."
+    ],
+    ar: [
+      "\u0627\u0644\u0634\u0643 \u062C\u0632\u0621 \u0645\u0646 \u0627\u0644\u0631\u062D\u0644\u0629 \u0627\u0644\u0625\u0646\u0633\u0627\u0646\u064A\u0629. \u064A\u062E\u0627\u0637\u0628\u0647 \u0627\u0644\u0642\u0631\u0622\u0646 \u0628\u0644\u0637\u0641: \u00AB\u0648\u0643\u0630\u0644\u0643 \u0646\u0631\u064A \u0625\u0628\u0631\u0627\u0647\u064A\u0645 \u0645\u0644\u0643\u0648\u062A \u0627\u0644\u0633\u0645\u0627\u0648\u0627\u062A \u0648\u0627\u0644\u0623\u0631\u0636 \u0644\u064A\u0643\u0648\u0646 \u0645\u0646 \u0627\u0644\u0645\u0648\u0642\u0646\u064A\u0646\u00BB (6:75). \u062D\u062A\u0649 \u0623\u0643\u0628\u0631 \u0627\u0644\u0623\u0646\u0628\u064A\u0627\u0621 \u0637\u0644\u0628\u0648\u0627 \u0627\u0644\u064A\u0642\u064A\u0646. \u0627\u0633\u0623\u0644 \u0627\u0644\u0644\u0647 \u0628\u0625\u062E\u0644\u0627\u0635. \u0623\u0633\u0626\u0644\u062A\u0643 \u0644\u064A\u0633\u062A \u0636\u0639\u0641\u064B\u0627 \u2014 \u0628\u0644 \u0637\u0631\u064A\u0642 \u0644\u0625\u064A\u0645\u0627\u0646 \u0623\u0642\u0648\u0649.",
+      "\u0639\u0646\u062F\u0645\u0627 \u062A\u062A\u0633\u0644\u0644 \u0627\u0644\u0634\u0643\u0648\u0643\u060C \u062A\u0630\u0643\u0631: \u00AB\u0627\u0644\u0644\u0647 \u0646\u0648\u0631 \u0627\u0644\u0633\u0645\u0627\u0648\u0627\u062A \u0648\u0627\u0644\u0623\u0631\u0636\u00BB (24:35). \u0627\u0644\u0646\u0648\u0631 \u064A\u0637\u0631\u062F \u0627\u0644\u0638\u0644\u0627\u0645. \u0623\u0643\u062B\u0631 \u0645\u0646 \u0627\u0644\u0623\u0639\u0645\u0627\u0644 \u0627\u0644\u0635\u0627\u0644\u062D\u0629\u060C \u0648\u062D\u0637 \u0646\u0641\u0633\u0643 \u0628\u0645\u0639\u064A\u0629 \u0627\u0644\u0635\u0627\u0644\u062D\u064A\u0646\u060C \u0648\u0627\u0633\u062A\u0645\u0631 \u0641\u064A \u0627\u0644\u0633\u0624\u0627\u0644."
+    ],
+    fr: [
+      "Le doute fait partie du voyage humain. Le Coran l'aborde avec douceur : 'Ainsi avons-Nous montr\u00E9 \u00E0 Abraham le royaume des cieux et de la terre pour qu'il soit parmi les certitudes.' (6:75). M\u00EAme les plus grands proph\u00E8tes ont cherch\u00E9 la certitude. Tes questions ne sont pas une faiblesse \u2014 elles sont un chemin vers une foi plus forte.",
+      "Quand les doutes s'installent, souviens-toi : 'Allah est la Lumi\u00E8re des cieux et de la terre.' (24:35). La lumi\u00E8re dissipe les t\u00E9n\u00E8bres. Multiplie les bonnes actions, entoure-toi de compagnons vertueux, et continue de chercher."
+    ]
+  },
+  tired: {
+    en: [
+      "You're exhausted, and that's okay. The Quran says: 'And We have certainly made the Quran easy for remembrance, but is there any who will remember?' (54:17). Take rest. Recharge. Your worship doesn't have to be grand \u2014 a simple 'Alhamdulillah' from the heart is enough. Allah knows your fatigue and honors your effort.",
+      "When you're tired, lean on Him. 'And when My servants ask you concerning Me \u2014 indeed I am near.' (2:186). You don't need to perform. You just need to show up. A tired heart that still turns to Allah is more beloved than a strong one that forgets Him."
+    ],
+    ar: [
+      "\u0623\u0646\u062A \u0645\u0646\u0647\u0643\u060C \u0648\u0647\u0630\u0627 \u0637\u0628\u064A\u0639\u064A. \u064A\u0642\u0648\u0644 \u0627\u0644\u0642\u0631\u0622\u0646: \u00AB\u0648\u0644\u0642\u062F \u064A\u0633\u0631\u0646\u0627 \u0627\u0644\u0642\u0631\u0622\u0646 \u0644\u0644\u0630\u0643\u0631 \u0641\u0647\u0644 \u0645\u0646 \u0645\u062F\u0643\u0631\u00BB (54:17). \u0627\u0633\u062A\u0631\u062D. \u0623\u0639\u062F \u0634\u062D\u0646\u0643. \u0639\u0628\u0627\u062F\u062A\u0643 \u0644\u0627 \u062A\u062D\u062A\u0627\u062C \u0623\u0646 \u062A\u0643\u0648\u0646 \u0639\u0638\u064A\u0645\u0629 \u2014 \u0642\u0644 \u00AB\u0627\u0644\u062D\u0645\u062F \u0644\u0644\u0647\u00BB \u0645\u0646 \u0627\u0644\u0642\u0644\u0628 \u064A\u0643\u0641\u064A. \u0627\u0644\u0644\u0647 \u064A\u0639\u0644\u0645 \u062A\u0639\u0628\u0643 \u0648\u064A\u0643\u0631\u0645 \u062C\u0647\u062F\u0643.",
+      "\u0639\u0646\u062F\u0645\u0627 \u062A\u0643\u0648\u0646 \u0645\u062A\u0639\u0628\u064B\u0627\u060C \u0627\u062A\u0643\u0626 \u0639\u0644\u064A\u0647. \u00AB\u0648\u0625\u0630\u0627 \u0633\u0623\u0644\u0643 \u0639\u0628\u0627\u062F\u064A \u0639\u0646\u064A \u0641\u0625\u0646\u064A \u0642\u0631\u064A\u0628\u00BB (2:186). \u0644\u0633\u062A \u0628\u062D\u0627\u062C\u0629 \u0625\u0644\u0649 \u0627\u0644\u0623\u062F\u0627\u0621. \u0641\u0642\u0637 \u0623\u0638\u0647\u0631. \u0642\u0644\u0628 \u0645\u062A\u0639\u0628 \u0644\u0627 \u064A\u0632\u0627\u0644 \u064A\u062A\u0648\u062C\u0647 \u0625\u0644\u0649 \u0627\u0644\u0644\u0647 \u0623\u062D\u0628 \u0625\u0644\u064A\u0647 \u0645\u0646 \u0642\u0644\u0628 \u0642\u0648\u064A \u064A\u0646\u0633\u0627\u0647."
+    ],
+    fr: [
+      "Tu es \u00E9puis\u00E9, et c'est normal. Le Coran dit : 'Nous avons vraiment facilit\u00E9 le Coran pour la m\u00E9ditation.' (54:17). Repose-toi. Recharge-toi. Ton adoration n'a pas besoin d'\u00EAtre grandiose \u2014 un simple 'Alhamdulillah' sinc\u00E8re suffit. Allah conna\u00EEt ta fatigue et honore ton effort.",
+      "Quand tu es fatigu\u00E9, appuie-toi sur Lui. 'Quand Mes serviteurs t'interrogent sur Moi \u2014 Je suis proche.' (2:186). Tu n'as pas besoin de performer. Il suffit d'\u00EAtre pr\u00E9sent. Un c\u0153ur fatigu\u00E9 qui se tourne encore vers Allah est plus aim\u00E9 qu'un c\u0153ur fort qui L'oublie."
+    ]
+  },
+  faith: {
+    en: [
+      "Strengthening your faith is a journey, not a destination. 'And whoever holds firmly to Allah has indeed been guided to a straight path.' (3:101). Hold on. Even when it's hard. Even when you feel distant. Faith has waves \u2014 high and low. The low times build your reliance on Him. Keep going. He hasn't left you.",
+      "Your desire to grow in faith is already a sign from Allah. 'So whoever Allah wants to guide \u2014 He expands his breast to Islam.' (6:125). The very fact that you're seeking means He's calling you. Respond. Take one small step today: read one verse, make one extra sujood."
+    ],
+    ar: [
+      "\u062A\u0642\u0648\u064A\u0629 \u0625\u064A\u0645\u0627\u0646\u0643 \u0631\u062D\u0644\u0629\u060C \u0644\u064A\u0633\u062A \u0648\u062C\u0647\u0629. \u00AB\u0648\u0645\u0646 \u064A\u0639\u062A\u0635\u0645 \u0628\u0627\u0644\u0644\u0647 \u0641\u0642\u062F \u0647\u062F\u064A \u0625\u0644\u0649 \u0635\u0631\u0627\u0637 \u0645\u0633\u062A\u0642\u064A\u0645\u00BB (3:101). \u062A\u0645\u0633\u0643. \u062D\u062A\u0649 \u0639\u0646\u062F\u0645\u0627 \u064A\u0643\u0648\u0646 \u0627\u0644\u0623\u0645\u0631 \u0635\u0639\u0628\u064B\u0627. \u0627\u0644\u0625\u064A\u0645\u0627\u0646 \u0644\u0647 \u0645\u062F \u0648\u062C\u0632\u0631. \u0627\u0644\u0623\u0648\u0642\u0627\u062A \u0627\u0644\u0645\u0646\u062E\u0641\u0636\u0629 \u062A\u0628\u0646\u064A \u062A\u0648\u0643\u0644\u0643 \u0639\u0644\u064A\u0647. \u0627\u0633\u062A\u0645\u0631. \u0644\u0645 \u064A\u062A\u0631\u0643\u0643.",
+      "\u0631\u063A\u0628\u062A\u0643 \u0641\u064A \u0627\u0644\u0646\u0645\u0648 \u0625\u064A\u0645\u0627\u0646\u064B\u0627 \u0647\u064A \u0628\u0634\u0627\u0631\u0629 \u0645\u0646 \u0627\u0644\u0644\u0647. \u00AB\u0641\u0645\u0646 \u064A\u0631\u062F \u0627\u0644\u0644\u0647 \u0623\u0646 \u064A\u0647\u062F\u064A\u0647 \u064A\u0634\u0631\u062D \u0635\u062F\u0631\u0647 \u0644\u0644\u0625\u0633\u0644\u0627\u0645\u00BB (6:125). \u062D\u0642\u064A\u0642\u0629 \u0623\u0646\u0643 \u062A\u0628\u062D\u062B \u062A\u0639\u0646\u064A \u0623\u0646\u0647 \u064A\u062F\u0639\u0648\u0643. \u062E\u0630 \u062E\u0637\u0648\u0629 \u0648\u0627\u062D\u062F\u0629 \u0627\u0644\u064A\u0648\u0645: \u0627\u0642\u0631\u0623 \u0622\u064A\u0629\u060C \u0627\u0633\u062C\u062F \u0633\u062C\u062F\u0629 \u0625\u0636\u0627\u0641\u064A\u0629."
+    ],
+    fr: [
+      "Renforcer ta foi est un voyage, pas une destination. 'Quiconque s'attache fermement \u00E0 Allah est guid\u00E9 vers un droit chemin.' (3:101). Tiens bon. M\u00EAme quand c'est dur. M\u00EAme quand tu te sens loin. La foi a des vagues \u2014 hautes et basses. Les moments bas construisent ta confiance en Lui.",
+      "Ton d\u00E9sir de grandir dans la foi est d\u00E9j\u00E0 un signe d'Allah. 'Celui qu'Allah veut guider \u2014 Il lui ouvre la poitrine \u00E0 l'Islam.' (6:125). Le simple fait que tu cherches signifie qu'Il t'appelle. R\u00E9ponds. Fais un petit pas aujourd'hui : lis un verset, fais une prosternation suppl\u00E9mentaire."
+    ]
+  },
+  forgiveness: {
+    en: [
+      "Seeking forgiveness is the most liberating act. 'And whoever does evil or wrongs himself and then seeks forgiveness of Allah will find Allah Forgiving and Merciful.' (4:110). Don't let pride stop you. Your 'Rabbighfirli' reaches the heavens. Allah is Al-Ghafur, Ar-Rahim. Say it with conviction.",
+      "Allah's mercy is wider than your sin. 'And your Lord says: Call upon Me; I will respond to you.' (40:60). He didn't say 'call upon Me if you're worthy'. He said 'call upon Me'. Period. You are always welcome. He is always listening. Don't wait until you feel ready. Come as you are."
+    ],
+    ar: [
+      "\u0637\u0644\u0628 \u0627\u0644\u0645\u063A\u0641\u0631\u0629 \u0647\u0648 \u0623\u062D\u0631 \u0623\u0639\u0645\u0627\u0644 \u0627\u0644\u062A\u062D\u0631\u064A\u0631. \u00AB\u0648\u0645\u0646 \u064A\u0639\u0645\u0644 \u0633\u0648\u0621\u064B\u0627 \u0623\u0648 \u064A\u0638\u0644\u0645 \u0646\u0641\u0633\u0647 \u062B\u0645 \u064A\u0633\u062A\u063A\u0641\u0631 \u0627\u0644\u0644\u0647 \u064A\u062C\u062F \u0627\u0644\u0644\u0647 \u063A\u0641\u0648\u0631\u064B\u0627 \u0631\u062D\u064A\u0645\u064B\u0627\u00BB (4:110). \u0644\u0627 \u062A\u062F\u0639 \u0627\u0644\u0643\u0628\u0631\u064A\u0627\u0621 \u062A\u0648\u0642\u0641\u0643. \u00AB\u0631\u0628 \u0627\u063A\u0641\u0631 \u0644\u064A\u00BB \u062A\u0635\u0644 \u0625\u0644\u0649 \u0627\u0644\u0633\u0645\u0627\u0621. \u0627\u0644\u0644\u0647 \u0647\u0648 \u0627\u0644\u063A\u0641\u0648\u0631 \u0627\u0644\u0631\u062D\u064A\u0645.",
+      "\u0631\u062D\u0645\u0629 \u0627\u0644\u0644\u0647 \u0623\u0648\u0633\u0639 \u0645\u0646 \u0630\u0646\u0628\u0643. \u00AB\u0648\u0642\u0627\u0644 \u0631\u0628\u0643\u0645 \u0627\u062F\u0639\u0648\u0646\u064A \u0623\u0633\u062A\u062C\u0628 \u0644\u0643\u0645\u00BB (40:60). \u0644\u0645 \u064A\u0642\u0644 \u00AB\u0627\u062F\u0639\u0648\u0646\u064A \u0625\u0646 \u0643\u0646\u062A\u0645 \u0645\u064F\u0647\u0644\u064B\u0627\u00BB. \u0642\u0627\u0644 \u00AB\u0627\u062F\u0639\u0648\u0646\u064A\u00BB. \u0641\u0642\u0637. \u0623\u0646\u062A \u0645\u0631\u062D\u0628 \u0628\u0643 \u062F\u0627\u0626\u0645\u064B\u0627. \u0644\u0627 \u062A\u0646\u062A\u0638\u0631 \u062D\u062A\u0649 \u062A\u0634\u0639\u0631 \u0628\u0627\u0644\u0627\u0633\u062A\u0639\u062F\u0627\u062F. \u062A\u0639\u0627\u0644 \u0643\u0645\u0627 \u0623\u0646\u062A."
+    ],
+    fr: [
+      "Demander pardon est l'acte le plus lib\u00E9rateur. 'Quiconque fait le mal ou se fait du tort, puis implore le pardon d'Allah, trouvera Allah Pardonneur et Mis\u00E9ricordieux.' (4:110). Ne laisse pas l'orgueil t'arr\u00EAter. Ton 'Rabbighfirli' atteint les cieux.",
+      "La mis\u00E9ricorde d'Allah est plus vaste que ton p\u00E9ch\u00E9. 'Votre Seigneur dit : Invoquez-Moi, Je vous r\u00E9pondrai.' (40:60). Il n'a pas dit 'invoquez-Moi si vous \u00EAtes dignes'. Il a dit 'invoquez-Moi'. Point. Tu es toujours le bienvenu. Il \u00E9coute toujours."
+    ]
+  }
+};
+
+const fallbacks = {
+  en: [
+    "I hear you. Every struggle is known to Allah. As the Quran says: 'Indeed, with hardship comes ease.' (94:6). Could you tell me a bit more about what you're going through? I'd love to share more specific guidance.",
+    "Thank you for sharing that with me. The Quran was revealed as 'a guidance for humanity and clear proofs of guidance.' (2:185). Whatever you're facing, there's wisdom in its words that can help. Can you tell me more about your situation?",
+    "I want to help you find peace through the words of Allah. 'Those who have believed and whose hearts are assured by the remembrance of Allah.' (13:28). What specific area of your life is weighing on you most right now?",
+    "I'm here for you. The Quran promises: 'So whoever does an atom's weight of good will see it.' (99:7). Your patience through this trial has immense value. Tell me more so I can share the right verses for your situation."
+  ],
+  ar: [
+    "\u0623\u0633\u0645\u0639\u0643. \u0643\u0644 \u0635\u0631\u0627\u0639 \u064A\u0639\u0644\u0645\u0647 \u0627\u0644\u0644\u0647. \u0643\u0645\u0627 \u064A\u0642\u0648\u0644 \u0627\u0644\u0642\u0631\u0622\u0646: \u00AB\u0625\u0646 \u0645\u0639 \u0627\u0644\u0639\u0633\u0631 \u064A\u0633\u0631\u064B\u0627\u00BB (94:6). \u0647\u0644 \u062A\u0633\u062A\u0637\u064A\u0639 \u0625\u062E\u0628\u0627\u0631\u064A \u0628\u0645\u0632\u064A\u062F \u0639\u0646 \u0645\u0627 \u062A\u0645\u0631 \u0628\u0647\u061F",
+    "\u0634\u0643\u0631\u064B\u0627 \u0644\u0645\u0634\u0627\u0631\u0643\u062A\u0643. \u0623\u0646\u0632\u0644 \u0627\u0644\u0642\u0631\u0622\u0646 \u00AB\u0647\u062F\u0649 \u0644\u0644\u0646\u0627\u0633 \u0648\u0628\u064A\u0646\u0627\u062A \u0645\u0646 \u0627\u0644\u0647\u062F\u0649\u00BB (2:185). \u0647\u0644 \u062A\u0633\u062A\u0637\u064A\u0639 \u0625\u062E\u0628\u0627\u0631\u064A \u0628\u0627\u0644\u0645\u0632\u064A\u062F \u0639\u0646 \u0645\u0648\u0642\u0641\u0643\u061F",
+    "\u0623\u0631\u064A\u062F \u0645\u0633\u0627\u0639\u062F\u062A\u0643 \u0641\u064A \u0625\u064A\u062C\u0627\u062F \u0627\u0644\u0633\u0644\u0627\u0645 \u0645\u0646 \u062E\u0644\u0627\u0644 \u0643\u0644\u0627\u0645 \u0627\u0644\u0644\u0647. \u00AB\u0627\u0644\u0630\u064A\u0646 \u0622\u0645\u0646\u0648\u0627 \u0648\u062A\u0637\u0645\u0626\u0646 \u0642\u0644\u0648\u0628\u0647\u0645 \u0628\u0630\u0643\u0631 \u0627\u0644\u0644\u0647\u00BB (13:28). \u0645\u0627 \u0647\u0648 \u0623\u0643\u062B\u0631 \u0645\u0627 \u064A\u062B\u0642\u0644 \u0639\u0644\u064A\u0643 \u0627\u0644\u0622\u0646\u061F",
+    "\u0623\u0646\u0627 \u0647\u0646\u0627 \u0645\u0646 \u0623\u062C\u0644\u0643. \u064A\u0639\u062F \u0627\u0644\u0642\u0631\u0622\u0646: \u00AB\u0641\u0645\u0646 \u064A\u0639\u0645\u0644 \u0645\u062B\u0642\u0627\u0644 \u0630\u0631\u0629 \u062E\u064A\u0631\u064B\u0627 \u064A\u0631\u0647\u00BB (99:7). \u0635\u0628\u0631\u0643 \u0641\u064A \u0647\u0630\u0647 \u0627\u0644\u0645\u062D\u0646\u0629 \u0644\u0647 \u0642\u064A\u0645\u0629 \u0647\u0627\u0626\u0644\u0629. \u0623\u062E\u0628\u0631\u0646\u064A \u0628\u0627\u0644\u0645\u0632\u064A\u062F \u0644\u0623\u0634\u0627\u0631\u0643 \u0627\u0644\u0622\u064A\u0627\u062A \u0627\u0644\u0645\u0646\u0627\u0633\u0628\u0629 \u0644\u0645\u0648\u0642\u0641\u0643."
+  ],
+  fr: [
+    "Je t'entends. Chaque lutte est connue d'Allah. Comme dit le Coran : 'Certes, avec la difficult\u00E9 vient la facilit\u00E9.' (94:6). Peux-tu m'en dire un peu plus sur ce que tu vis ?",
+    "Merci de partager avec moi. Le Coran a \u00E9t\u00E9 r\u00E9v\u00E9l\u00E9 comme 'une guid\u00E9e pour l'humanit\u00E9 et des preuves claires de la guid\u00E9e.' (2:185). Peux-tu m'en dire plus sur ta situation ?",
+    "Je veux t'aider \u00E0 trouver la paix \u00E0 travers les paroles d'Allah. 'Ceux qui croient et dont les c\u0153urs s'apaisent par l'\u00E9vocation d'Allah.' (13:28). Quel domaine de ta vie te p\u00E8se le plus en ce moment ?",
+    "Je suis l\u00E0 pour toi. Le Coran promet : 'Quiconque fait un bien, f\u00FBt-ce du poids d'un atome, le verra.' (99:7). Ta patience dans cette \u00E9preuve a une valeur immense. Dis-m'en plus pour que je partage les versets adapt\u00E9s."
+  ]
+};
+
+let currentLang = 'en';
+const msgEl = document.getElementById('messages');
+const input = document.getElementById('chatInput');
+const sendBtn = document.getElementById('sendBtn');
+const typing = document.getElementById('typing');
+const suggestions = document.getElementById('suggestions');
+const welcomeMsg = document.getElementById('welcomeMsg');
+const chatTitle = document.getElementById('chatTitle');
+const chatSubtitle = document.getElementById('chatSubtitle');
+const langBtns = document.querySelectorAll('.lang-btn');
+
+const greetingRE = /\b(hi|hello|hey|salam|peace|assalam|marhaba)\b/i;
+const farewellRE = /\b(bye|goodbye|thanks|thank you|jazzak|shukran|barak)\b/i;
+
+function matchIntent(text) {
+  const t = text.toLowerCase();
+  if (/lost|direction|purpose|meaning|no path|where.*go|stuck|aimless|wandering/.test(t) ||
+      /\u0636\u0627\u0626\u0639|\u062A\u0627\u0626\u0647|\u0644\u0627.?\u0647\u062F\u0641|\u0644\u0627.?\u0627\u062A\u062C\u0627\u0647/.test(t) ||
+      /perdu|direction|but|sens|égar/.test(t)) return 'lost';
+  if (/anxious|anxiety|worried|worry|stress|stressed|fear|afraid|panic|nervous|future|scared|overwhelm/.test(t) ||
+      /\u0642\u0644\u0642|\u062E\u0627\u0626\u0641|\u062A\u0648\u062A\u0631|\u062E\u0648\u0641|\u062E\u0627\u064A\u0641/.test(t) ||
+      /anxieux|anxiété|inquiet|peur|panique|stress|avenir/.test(t)) return 'anxious';
+  if (/sad|sadness|sorrow|grief|grieve|cry|tears|heartbroken|depress|down|miserable/.test(t) ||
+      /\u062D\u0632\u064A\u0646|\u062D\u0632\u0646|\u0628\u0643\u0627\u0621|\u062F\u0645\u0648\u0639|\u0645\u0643\u062A\u0626\u0628|\u0645\u0646\u0643\u0633\u0631/.test(t) ||
+      /triste|pleur|chagrin|larme|déprim/.test(t)) return 'sad';
+  if (/grief|grieve|grieving|death|died|loss|lost.*one|passed away|deceased|funeral|grave|die|bereave/.test(t) ||
+      /\u0648\u0641\u0627\u0629|\u0645\u0648\u062A|\u0641\u0642\u062F|\u0641\u0642\u064A\u062F|\u0645\u0627\u062A|\u0645\u062A\u0648\u0641\u064A/.test(t) ||
+      /deuil|mort|décès|perte|funérailles|enterr/.test(t)) return 'grief';
+  if (/family|mother|father|parent|sibling|brother|sister|son|daughter|husband|wife|marriage|divorce|relative/.test(t) ||
+      /\u0639\u0627\u0626\u0644\u0629|\u0623\u0645|\u0623\u0628|\u0648\u0627\u0644\u062F|\u0648\u0627\u0644\u062F\u0629|\u0623\u062E|\u0623\u062E\u062A|\u0632\u0648\u062C|\u0632\u0648\u062C\u0629|\u0632\u0648\u0627\u062C|\u0637\u0644\u0627\u0642/.test(t) ||
+      /famille|mère|père|parent|frère|sœur|mari|femme|mariage|divorce/.test(t)) return 'family';
+  if (/lonely|loneliness|alone|isolated|isolation|no one|nobody|abandon|forgotten|left out/.test(t) ||
+      /\u0648\u062D\u064A\u062F|\u0648\u062D\u062F\u0629|\u0639\u0632\u0644\u0629|\u0645\u0646\u0639\u0632\u0644|\u0644\u0627.?\u0623\u062D\u062F/.test(t) ||
+      /seul|solitude|isolé|abandonné|oublié/.test(t)) return 'lonely';
+  if (/angry|anger|mad|furious|frustrated|rage|irritat|annoy|hate|hatred/.test(t) ||
+      /\u063A\u0636\u0628|\u063A\u0627\u0636\u0628|\u063A\u0636\u0628\u0627\u0646|\u063A\u064A\u0637\u0627\u0646|\u0645\u0636\u0627\u064A\u0642|\u0643\u0631\u0647/.test(t) ||
+      /colère|fâché|énervé|frustré|rage|irrité|haine/.test(t)) return 'angry';
+  if (/hopeless|despair|desperate|give.?up|no point|why bother|can.*go|rock.?bottom|giving.?up/.test(t) ||
+      /\u064A\u0627\u0626\u0633|\u064A\u0623\u0633|\u0641\u0642\u062F.?\u0623\u0645\u0644|\u0644\u0627.?\u0623\u0645\u0644|\u0627\u0633\u062A\u0633\u0644\u0645/.test(t) ||
+      /désespoir|désespéré|abandonner|plus.*espoir/.test(t)) return 'hopeless';
+  if (/guilty|guilt|ashamed|shame|regret|remorse|sorry|sin|mistake|failed|failure|wrong/.test(t) ||
+      /\u0645\u0630\u0646\u0628|\u0630\u0646\u0628|\u062E\u062C\u0644|\u0639\u0627\u0631|\u0646\u062F\u0645|\u0622\u0633\u0641|\u062E\u0637\u0623|\u0641\u0634\u0644/.test(t) ||
+      /coupable|culpabilité|honte|regret|péché|erreur|échec/.test(t)) return 'guilty';
+  if (/grateful|thankful|blessed|appreciate|gratitude|shukr|thank/.test(t) ||
+      /\u0634\u0627\u0643\u0631|\u0634\u0643\u0631|\u0645\u0645\u062A\u0646|\u0645\u062D\u0638\u0648\u0638|\u0645\u0628\u0627\u0631\u0643/.test(t) ||
+      /reconnaissant|gratitude|béni|appréci/.test(t)) return 'grateful';
+  if (/confused|confusion|unsure|uncertain|doubt|perplex|baffl|puzzl|mystif|torn|dilemma/.test(t) ||
+      /\u0645\u062D\u062A\u0627\u0631|\u062D\u064A\u0631\u0629|\u0645\u062A\u0631\u062F\u062F|\u0645\u0634\u0648\u0634|\u0645\u0634\u0643\u0643|\u0634\u0643/.test(t) ||
+      /confus|perdu|incertain|doute|dilemme|hésit/.test(t)) return 'confused';
+  if (/doubt|iman|faith|belief|question.*islam|convert|revert|believe|certainty/.test(t) ||
+      /\u0634\u0643|\u0625\u064A\u0645\u0627\u0646|\u0627\u0639\u062A\u0642\u0627\u062F|\u064A\u0642\u064A\u0646|\u0625\u0633\u0644\u0627\u0645|\u0645\u0633\u0644\u0645/.test(t) ||
+      /doute|foi|croyance|convertir|certitude/.test(t)) return 'doubt';
+  if (/tired|exhausted|fatigue|drain|burn.?out|no energy|rest|sleep|weary/.test(t) ||
+      /\u062A\u0639\u0628|\u0645\u0646\u0647\u0643|\u0625\u0631\u0647\u0627\u0642|\u0644\u0627.?\u0637\u0627\u0642\u0629|\u0646\u0648\u0645|\u0631\u0627\u062D\u0629/.test(t) ||
+      /fatigué|épuisé|épuisement|énergie|repos|sommeil/.test(t)) return 'tired';
+  if (/iman|faith|deen|religious|prayer|salah|quran|closer.*allah|spiritual|worship|ibadah/.test(t) ||
+      /\u062F\u064A\u0646|\u0635\u0644\u0627\u0629|\u0645\u0633\u0644\u0645|\u0625\u064A\u0645\u0627\u0646|\u0642\u0631\u0622\u0646|\u0639\u0628\u0627\u062F\u0629|\u0631\u0648\u062D\u064A/.test(t) ||
+      /foi|prière|coran|spirituel|adoration/.test(t)) return 'faith';
+  if (/forgive|forgiveness|repent|repentance|tawbah|astaghfir|mercy/.test(t) ||
+      /\u063A\u0641\u0631|\u0645\u063A\u0641\u0631\u0629|\u062A\u0648\u0628\u0629|\u0627\u0633\u062A\u063A\u0641\u0631|\u0631\u062D\u0645\u0629/.test(t) ||
+      /pardon|repent|repentance|miséricorde/.test(t)) return 'forgiveness';
+  if (greetingRE.test(t) || /\u0627\u0644\u0633\u0644\u0627\u0645|\u0645\u0631\u062D\u0628\u0627|\u0627\u0647\u0644\u0627/.test(t) || /bonjour|salut/.test(t)) return 'greeting';
+  if (farewellRE.test(t) || /\u0645\u0639.?\u0627\u0644\u0633\u0644\u0627\u0645|\u0634\u0643\u0631\u0627|\u0628\u0627\u0631\u0643/.test(t) || /merci|au revoir/.test(t)) return 'farewell';
+  return null;
+}
+
+function getResponse(intent) {
+  if (!intent) return null;
+  if (intent === 'greeting') {
+    const g = { en: 'Wa alaykum assalam! How can I help you today?', ar: '\u0648\u0639\u0644\u064A\u0643\u0645 \u0627\u0644\u0633\u0644\u0627\u0645! \u0643\u064A\u0641 \u064A\u0645\u0643\u0646\u0646\u064A \u0645\u0633\u0627\u0639\u062F\u062A\u0643 \u0627\u0644\u064A\u0648\u0645\u061F', fr: 'Wa alaykum assalam ! Comment puis-je t\u2019aider aujourd\u2019hui\u202F?' };
+    return { text: g[currentLang] || g.en, ayah: '' };
+  }
+  if (intent === 'farewell') {
+    const f = {
+      en: "May Allah bless you and grant you peace. Remember: 'And whoever does righteous deeds, whether male or female, while being a believer \u2014 those will enter Paradise.' (4:124). Come back anytime you need support. Assalamu alaykum.",
+      ar: "\u0628\u0627\u0631\u0643 \u0627\u0644\u0644\u0647 \u0641\u064A\u0643 \u0648\u062D\u0641\u0638\u0643. \u062A\u0630\u0643\u0631: '\u0648\u0645\u0646 \u064A\u0639\u0645\u0644 \u0645\u0646 \u0627\u0644\u0635\u0627\u0644\u062D\u0627\u062A \u0645\u0646 \u0630\u0643\u0631 \u0623\u0648 \u0623\u0646\u062B\u0649 \u0648\u0647\u0648 \u0645\u0624\u0645\u0646 \u0641\u0623\u0648\u0644\u0626\u0643 \u064A\u062F\u062E\u0644\u0648\u0646 \u0627\u0644\u062C\u0646\u0629.' (4:124). \u0639\u062F \u0641\u064A \u0623\u064A \u0648\u0642\u062A \u062A\u062D\u062A\u0627\u062C \u0627\u0644\u062F\u0639\u0645. \u0627\u0644\u0633\u0644\u0627\u0645 \u0639\u0644\u064A\u0643\u0645.",
+      fr: "Qu'Allah te b\u00E9nisse et t'accorde la paix. Souviens-toi : 'Quiconque accomplit de bonnes \u0153uvres, homme ou femme, en \u00E9tant croyant \u2014 ceux-l\u00E0 entreront au Paradis.' (4:124). Reviens quand tu as besoin de soutien. Assalamu alaykum."
+    };
+    return { text: f[currentLang] || f.en, ayah: '' };
+  }
+  const pool = responses[intent];
+  if (!pool) return null;
+  const langPool = pool[currentLang] || pool.en;
+  return { text: langPool[Math.floor(Math.random() * langPool.length)], ayah: '' };
+}
+
+function getFallback() {
+  const pool = fallbacks[currentLang] || fallbacks.en;
+  return { text: pool[Math.floor(Math.random() * pool.length)], ayah: '' };
+}
+
+function addMessage(type, content) {
+  const div = document.createElement('div');
+  div.className = `message ${type}`;
+  div.innerHTML = `<div class="bubble">${content}</div>`;
+  msgEl.appendChild(div);
+  msgEl.scrollTop = msgEl.scrollHeight;
+}
+
+function showTyping() { typing.classList.add('visible'); }
+function hideTyping() { typing.classList.remove('visible'); }
+
+function processMessage(text) {
+  addMessage('user', text);
+  showTyping();
+  setTimeout(() => {
+    hideTyping();
+    const intent = matchIntent(text);
+    const response = intent ? (getResponse(intent) || getFallback()) : getFallback();
+    addMessage('bot', response.text);
+  }, 700 + Math.random() * 600);
+}
+
+function handleSend() {
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  suggestions.innerHTML = '';
+  processMessage(text);
+}
+
+function applyLang(lang) {
+  currentLang = lang;
+  const s = strings[lang];
+  chatTitle.textContent = s.title;
+  chatSubtitle.textContent = s.subtitle;
+  input.placeholder = s.placeholder;
+  welcomeMsg.textContent = s.welcome;
+  langBtns.forEach(b => b.classList.toggle('active', b.dataset.lang === lang));
+
+  const btns = suggestions.querySelectorAll('.suggestion-btn');
+  btns.forEach((btn, i) => {
+    if (s.suggestions[i]) btn.textContent = s.suggestions[i];
+  });
+}
+
+langBtns.forEach(btn => btn.addEventListener('click', () => applyLang(btn.dataset.lang)));
+applyLang(currentLang);
+sendBtn.addEventListener('click', handleSend);
+input.addEventListener('keydown', e => { if (e.key === 'Enter') handleSend(); });
+document.addEventListener('click', e => {
+  const btn = e.target.closest('.suggestion-btn');
+  if (btn) { input.value = btn.dataset.msg; handleSend(); }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quranic Comfort - Find Your Ayah</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Noto+Naskh+Arabic:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    min-height: 100vh;
+    background: #000;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .nav-bar {
+    width: 100%;
+    max-width: 680px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 12px 24px;
+    background: rgba(18,18,18,0.85);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px;
+  }
+
+  .nav-bar .brand {
+    color: #fff;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.2px;
+  }
+
+  .nav-bar .brand span { color: rgba(255,255,255,0.3); font-weight: 400; }
+
+  .nav-links { display: flex; gap: 8px; }
+
+  .nav-link {
+    padding: 8px 16px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    font-family: inherit;
+  }
+
+  .nav-link.active {
+    background: #fff;
+    color: #000;
+  }
+
+  .nav-link.inactive {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.5);
+  }
+
+  .nav-link.inactive:hover {
+    background: rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.7);
+  }
+
+  .container {
+    background: rgba(18, 18, 18, 0.85);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 28px;
+    padding: 48px 40px;
+    max-width: 680px;
+    width: 100%;
+    box-shadow: 0 32px 64px -16px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.05);
+  }
+
+  .header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 32px;
+  }
+
+  .header-text { flex: 1; }
+
+  .header-text h1 {
+    color: #fff;
+    font-size: 26px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    letter-spacing: -0.3px;
+  }
+
+  .header-text .subtitle {
+    color: rgba(255,255,255,0.4);
+    font-size: 14px;
+    letter-spacing: 0.2px;
+    line-height: 1.5;
+  }
+
+  .lang-switcher {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+    margin-left: 16px;
+  }
+
+  .lang-btn {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.35);
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .lang-btn:hover {
+    background: rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.6);
+    border-color: rgba(255,255,255,0.2);
+  }
+
+  .lang-btn.active {
+    background: #fff;
+    border-color: #fff;
+    color: #000;
+  }
+
+  .feeling-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 28px;
+  }
+
+  .feeling-btn {
+    position: relative;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.7);
+    padding: 11px 22px;
+    border-radius: 40px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    font-family: inherit;
+    overflow: hidden;
+  }
+
+  .feeling-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 40px;
+    background: #fff;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+
+  .feeling-btn:hover {
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(255,255,255,0.2);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  }
+
+  .feeling-btn:active { transform: scale(0.96) translateY(0); }
+
+  .feeling-btn.selected {
+    background: #fff;
+    border-color: #fff;
+    color: #000;
+    box-shadow: 0 8px 32px rgba(255,255,255,0.1);
+  }
+
+  .feeling-btn.selected:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(255,255,255,0.15);
+  }
+
+  .feeling-btn .emoji { margin-right: 6px; }
+
+  .input-area {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 28px;
+  }
+
+  .input-area input {
+    flex: 1;
+    padding: 14px 20px;
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.04);
+    color: #fff;
+    font-size: 15px;
+    outline: none;
+    transition: all 0.2s ease;
+    font-family: inherit;
+  }
+
+  .input-area input::placeholder { color: rgba(255,255,255,0.25); }
+  .input-area input:focus { border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.06); }
+
+  .input-area button {
+    padding: 14px 28px;
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.06);
+    color: #fff;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    white-space: nowrap;
+    font-family: inherit;
+    letter-spacing: 0.2px;
+  }
+
+  .input-area button:hover {
+    background: rgba(255,255,255,0.12);
+    border-color: rgba(255,255,255,0.25);
+    transform: translateY(-1px);
+  }
+
+  .input-area button:active { transform: scale(0.97); }
+
+  .result {
+    display: none;
+    animation: fadeUp 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .result.visible { display: block; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .aya-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 20px;
+    padding: 32px 28px;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  .surah-info {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+
+  .surah-info .icon {
+    width: 44px; height: 44px;
+    border-radius: 14px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  .surah-info .meta h2 {
+    color: #fff;
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: -0.2px;
+  }
+
+  .surah-info .meta span {
+    color: rgba(255,255,255,0.3);
+    font-size: 13px;
+    font-weight: 400;
+  }
+
+  .aya-text {
+    color: #fff;
+    font-size: 20px;
+    line-height: 1.8;
+    margin-bottom: 24px;
+    font-style: italic;
+    text-align: center;
+    padding: 4px 0;
+    font-weight: 400;
+  }
+
+  .aya-arabic {
+    direction: rtl;
+    font-family: 'Amiri', 'Noto Naskh Arabic', 'Traditional Arabic', serif;
+    font-size: 27px;
+    line-height: 2;
+    color: rgba(255,255,255,0.85);
+    margin-bottom: 20px;
+    padding: 16px 8px 12px;
+    font-weight: 400;
+    font-style: normal;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+
+  .aya-text .ref {
+    display: block;
+    margin-top: 14px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.3);
+    font-style: normal;
+    font-weight: 400;
+    letter-spacing: 0.3px;
+  }
+
+  .divider {
+    height: 1px;
+    background: rgba(255,255,255,0.05);
+    margin: 0 0 24px 0;
+  }
+
+  .explanation h3 {
+    color: rgba(255,255,255,0.4);
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .explanation p {
+    color: rgba(255,255,255,0.7);
+    font-size: 15px;
+    line-height: 1.8;
+    font-weight: 400;
+  }
+
+  .rating-section {
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255,255,255,0.05);
+    text-align: center;
+  }
+
+  .rating-section h3 {
+    color: rgba(255,255,255,0.3);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .stars {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+  }
+
+  .star {
+    font-size: 28px;
+    cursor: pointer;
+    color: rgba(255,255,255,0.1);
+    transition: all 0.2s ease;
+    line-height: 1;
+    user-select: none;
+  }
+
+  .star:hover,
+  .star.active {
+    color: #fff;
+    transform: scale(1.1);
+  }
+
+  .star:hover ~ .star { color: rgba(255,255,255,0.1); }
+
+  .stars:hover .star { color: rgba(255,255,255,0.2); }
+  .stars:hover .star:hover,
+  .stars:hover .star.active { color: #fff; }
+  .stars:hover .star:hover ~ .star { color: rgba(255,255,255,0.1); }
+
+  .rating-label {
+    color: rgba(255,255,255,0.2);
+    font-size: 12px;
+    margin-top: 8px;
+    font-weight: 400;
+  }
+
+  .reset-btn {
+    display: block;
+    margin: 28px auto 0;
+    background: none;
+    border: 1px solid rgba(255,255,255,0.06);
+    color: rgba(255,255,255,0.3);
+    padding: 12px 24px;
+    border-radius: 40px;
+    font-size: 14px;
+    font-weight: 400;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+  }
+
+  .reset-btn:hover {
+    border-color: rgba(255,255,255,0.15);
+    color: rgba(255,255,255,0.6);
+    background: rgba(255,255,255,0.03);
+  }
+
+  .error {
+    color: rgba(255,255,255,0.3);
+    text-align: center;
+    font-size: 14px;
+    margin-top: 8px;
+    display: none;
+  }
+
+  .error.visible { display: block; }
+
+  @media (max-width: 500px) {
+    .container { padding: 32px 20px; border-radius: 20px; }
+    .header-row { flex-direction: column; gap: 14px; }
+    .lang-switcher { margin-left: 0; }
+    .feeling-row { gap: 8px; }
+    .feeling-btn { padding: 9px 16px; font-size: 14px; }
+    .aya-text { font-size: 17px; }
+    .aya-arabic { font-size: 22px; }
+    .input-area { flex-direction: column; }
+    .input-area button { width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<div class="nav-bar">
+  <div class="brand">&#x1F54D; Quranic <span>Assistant</span></div>
+  <div class="nav-links">
+    <a href="index.html" class="nav-link active">Feelings</a>
+    <a href="chat.html" class="nav-link inactive">AI Chat</a>
+  </div>
+</div>
+
+<div class="container">
+  <div class="header-row">
+    <div class="header-text">
+      <h1 id="title">&#x1F54D; How are you feeling?</h1>
+      <p class="subtitle" id="subtitle">Select a feeling or type your own, and find a Quranic verse that speaks to your heart.</p>
+    </div>
+    <div class="lang-switcher">
+      <button class="lang-btn active" data-lang="en">EN</button>
+      <button class="lang-btn" data-lang="ar">AR</button>
+      <button class="lang-btn" data-lang="fr">FR</button>
+    </div>
+  </div>
+
+  <div class="feeling-row">
+    <button class="feeling-btn" data-feeling="sad"><span class="emoji">&#x1F622;</span> <span class="feeling-label">Sad</span></button>
+    <button class="feeling-btn" data-feeling="anxious"><span class="emoji">&#x1F630;</span> <span class="feeling-label">Anxious</span></button>
+    <button class="feeling-btn" data-feeling="lonely"><span class="emoji">&#x1F494;</span> <span class="feeling-label">Lonely</span></button>
+    <button class="feeling-btn" data-feeling="angry"><span class="emoji">&#x1F620;</span> <span class="feeling-label">Angry</span></button>
+    <button class="feeling-btn" data-feeling="hopeless"><span class="emoji">&#x1F4A5;</span> <span class="feeling-label">Hopeless</span></button>
+    <button class="feeling-btn" data-feeling="grateful"><span class="emoji">&#x1F64F;</span> <span class="feeling-label">Grateful</span></button>
+    <button class="feeling-btn" data-feeling="confused"><span class="emoji">&#x1F914;</span> <span class="feeling-label">Confused</span></button>
+    <button class="feeling-btn" data-feeling="guilty"><span class="emoji">&#x1F4A7;</span> <span class="feeling-label">Guilty</span></button>
+  </div>
+
+  <div class="input-area">
+    <input type="text" id="feelingInput" placeholder="Or type your own feeling..." autocomplete="off">
+    <button id="submitBtn">Find Ayah</button>
+  </div>
+
+  <div class="error" id="errorMsg">Please enter how you're feeling.</div>
+
+  <div class="result" id="result">
+    <div class="aya-card">
+      <div class="surah-info">
+        <div class="icon">&#x1F54D;</div>
+        <div class="meta">
+          <h2 id="surahName">Surah</h2>
+          <span id="ayahRef">Ayah</span>
+        </div>
+      </div>
+      <div class="aya-text">
+        <div id="ayaArabic" class="aya-arabic"></div>
+        <span id="ayaContent"></span>
+        <span class="ref" id="ayaRef"></span>
+      </div>
+      <div class="divider"></div>
+      <div class="explanation">
+        <h3 id="explanationHeading">How This Helps</h3>
+        <p id="explanationContent"></p>
+      </div>
+      <div class="rating-section">
+        <h3 id="ratingHeading">Rate This</h3>
+        <div class="stars" id="stars">
+          <span class="star" data-value="1">&#9733;</span>
+          <span class="star" data-value="2">&#9733;</span>
+          <span class="star" data-value="3">&#9733;</span>
+          <span class="star" data-value="4">&#9733;</span>
+          <span class="star" data-value="5">&#9733;</span>
+        </div>
+        <div class="rating-label" id="ratingLabel"></div>
+      </div>
+    </div>
+    <button class="reset-btn" id="resetBtn">I want to share another feeling</button>
+  </div>
+</div>
+
+<script>
+const LANGUAGES = ['en', 'ar', 'fr'];
+
+const strings = {
+  en: {
+    title: '\u{1F54D} How are you feeling?',
+    subtitle: 'Select a feeling or type your own, and find a Quranic verse that speaks to your heart.',
+    placeholder: 'Or type your own feeling...',
+    findAyah: 'Find Ayah',
+    errorEmpty: 'Please enter how you\'re feeling.',
+    errorNotFound: 'We couldn\'t find a verse for that feeling. Try one of the suggestions above!',
+    explanationHeading: 'How This Helps',
+    ratingHeading: 'Rate This',
+    resetBtn: 'I want to share another feeling',
+    rated: 'You rated this',
+    feelings: {
+      sad: 'Sad', anxious: 'Anxious', lonely: 'Lonely', angry: 'Angry',
+      hopeless: 'Hopeless', grateful: 'Grateful', confused: 'Confused', guilty: 'Guilty'
+    }
+  },
+  ar: {
+    title: '\u{1F54D} \u0643\u064A\u0641 \u062A\u0634\u0639\u0631\u061F',
+    subtitle: '\u0627\u062E\u062A\u0631 \u0634\u0639\u0648\u0631\u064B\u0627 \u0623\u0648 \u0627\u0643\u062A\u0628 \u0634\u0639\u0648\u0631\u0643\u060C \u0648\u0627\u0639\u062B\u0631 \u0639\u0644\u0649 \u0622\u064A\u0629 \u0642\u0631\u0622\u0646\u064A\u0629 \u062A\u0644\u0627\u0645\u0633 \u0642\u0644\u0628\u0643.',
+    placeholder: '\u0623\u0648 \u0627\u0643\u062A\u0628 \u0634\u0639\u0648\u0631\u0643...',
+    findAyah: '\u0627\u0628\u062D\u062B \u0639\u0646 \u0622\u064A\u0629',
+    errorEmpty: '\u0645\u0646 \u0641\u0636\u0644\u0643 \u0627\u062F\u062E\u0644 \u0634\u0639\u0648\u0631\u0643.',
+    errorNotFound: '\u0644\u0645 \u0646\u062C\u062F \u0622\u064A\u0629 \u0644\u0647\u0630\u0627 \u0627\u0644\u0634\u0639\u0648\u0631. \u062C\u0631\u0628 \u0623\u062D\u062F \u0627\u0644\u0627\u0642\u062A\u0631\u0627\u062D\u0627\u062A \u0623\u0639\u0644\u0627\u0647!',
+    explanationHeading: '\u0643\u064A\u0641 \u062A\u0633\u0627\u0639\u062F \u0647\u0630\u0647 \u0627\u0644\u0622\u064A\u0629',
+    ratingHeading: '\u0642\u064A\u0651\u0650\u0645 \u0647\u0630\u0627',
+    resetBtn: '\u0623\u0631\u064A\u062F \u0645\u0634\u0627\u0631\u0643\u0629 \u0634\u0639\u0648\u0631 \u0622\u062E\u0631',
+    rated: '\u0642\u0645\u062A \u0628\u062A\u0642\u064A\u064A\u0645\u0647',
+    feelings: {
+      sad: '\u062D\u0632\u064A\u0646', anxious: '\u0642\u0644\u0642', lonely: '\u0648\u062D\u064A\u062F', angry: '\u063A\u0627\u0636\u0628',
+      hopeless: '\u0628\u0644\u0627 \u0623\u0645\u0644', grateful: '\u0634\u0627\u0643\u0631', confused: '\u0645\u062D\u062A\u0627\u0631', guilty: '\u0645\u0630\u0646\u0628'
+    }
+  },
+  fr: {
+    title: '\u{1F54D} Comment te sens-tu\u202F?',
+    subtitle: 'Choisis un sentiment ou \u00E9cris le tien, et trouve un verset coranique qui parle \u00E0 ton c\u0153ur.',
+    placeholder: 'Ou \u00E9cris ton sentiment...',
+    findAyah: 'Trouver le verset',
+    errorEmpty: 'Veuillez entrer votre sentiment.',
+    errorNotFound: 'Aucun verset trouv\u00E9 pour ce sentiment. Essaie l\u2019une des suggestions ci-dessus\u202F!',
+    explanationHeading: 'Comment cela aide',
+    ratingHeading: 'Note ceci',
+    resetBtn: 'Je veux partager un autre sentiment',
+    rated: 'Tu as not\u00E9',
+    feelings: {
+      sad: 'Triste', anxious: 'Anxieux', lonely: 'Seul', angry: 'En col\u00E8re',
+      hopeless: 'Sans espoir', grateful: 'Reconnaissant', confused: 'Perdu', guilty: 'Coupable'
+    }
+  }
+};
+
+const verses = {
+  sad: {
+    arabic: "\u0641\u064E\u0625\u0650\u0646\u0651\u064E \u0645\u064E\u0639\u064E \u0627\u0644\u0652\u0639\u064F\u0633\u0652\u0631\u0650 \u064A\u064F\u0633\u0652\u0631\u064B\u0627 \uFDD3\u0665\uFDD2 \u0625\u0650\u0646\u0651\u064E \u0645\u064E\u0639\u064E \u0627\u0644\u0652\u0639\u064F\u0633\u0652\u0631\u0650 \u064A\u064F\u0633\u0652\u0631\u064B\u0627",
+    ref: "Quran 94:5-6",
+    en: { surah: "Surah Ash-Sharh (94:5-6)", ayah: '"For indeed, with hardship comes ease. Indeed, with hardship comes ease."', explanation: "This verse is a divine promise that no difficulty lasts forever. When sadness weighs on your heart, remember that relief is always on its way. The repetition emphasizes certainty \u2014 ease isn't just possible, it's guaranteed. Let this Ayah remind you that your current pain is temporary and brighter days are ahead." },
+    ar: { surah: "\u0633\u0648\u0631\u0629 \u0627\u0644\u0634\u0631\u062D (94:5-6)", ayah: "\u00AB\u0641\u0625\u0646 \u0645\u0639 \u0627\u0644\u0639\u0633\u0631 \u064A\u0633\u0631\u064B\u0627. \u0625\u0646 \u0645\u0639 \u0627\u0644\u0639\u0633\u0631 \u064A\u0633\u0631\u064B\u0627\u00BB", explanation: "\u0647\u0630\u0647 \u0627\u0644\u0622\u064A\u0629 \u0647\u064A \u0648\u0639\u062F \u0625\u0644\u0647\u064A \u0628\u0623\u0646 \u0644\u0627 \u0635\u0639\u0648\u0628\u0629 \u062A\u062F\u0648\u0645 \u0625\u0644\u0649 \u0627\u0644\u0623\u0628\u062F. \u0639\u0646\u062F\u0645\u0627 \u064A\u062B\u0642\u0644 \u0627\u0644\u062D\u0632\u0646 \u0639\u0644\u0649 \u0642\u0644\u0628\u0643\u060C \u062A\u0630\u0643\u0631 \u0623\u0646 \u0627\u0644\u0641\u0631\u062C \u0641\u064A \u0627\u0644\u0637\u0631\u064A\u0642 \u0625\u0644\u064A\u0643. \u0627\u0644\u062A\u0643\u0631\u0627\u0631 \u064A\u0624\u0643\u062F \u0627\u0644\u064A\u0642\u064A\u0646 \u2014 \u0627\u0644\u064A\u0633\u0631 \u0644\u064A\u0633 \u0645\u062C\u0631\u062F \u0627\u062D\u062A\u0645\u0627\u0644\u060C \u0628\u0644 \u0647\u0648 \u0645\u0636\u0645\u0648\u0646. \u062F\u0639 \u0647\u0630\u0647 \u0627\u0644\u0622\u064A\u0629 \u062A\u0630\u0643\u0631\u0643 \u0623\u0646 \u0623\u0644\u0645\u0643 \u0627\u0644\u062D\u0627\u0644\u064A \u0645\u0624\u0642\u062A \u0648\u0623\u0646 \u0623\u064A\u0627\u0645\u064B\u0627 \u0623\u0643\u062B\u0631 \u0625\u0634\u0631\u0627\u0642\u064B\u0627 \u062A\u0646\u062A\u0638\u0631\u0643." },
+    fr: { surah: "Sourate Ash-Sharh (94:5-6)", ayah: "\u00AB\u202FCar vraiment, avec la difficult\u00E9 vient la facilit\u00E9. Oui, avec la difficult\u00E9 vient la facilit\u00E9.\u202F\u00BB", explanation: "Ce verset est une promesse divine qu\u2019aucune difficult\u00E9 ne dure \u00E9ternellement. Quand la tristesse alourdit ton c\u0153ur, souviens-toi que le soulagement est toujours en chemin. La r\u00E9p\u00E9tition renforce la certitude\u202F: la facilit\u00E9 n\u2019est pas seulement possible, elle est garantie. Laisse ce verset te rappeler que ta peine actuelle est temporaire et que des jours meilleurs t\u2019attendent." }
+  },
+  anxious: {
+    arabic: "\u0648\u064E\u0645\u064E\u0646 \u064A\u064E\u062A\u064E\u0648\u064E\u0643\u0651\u064E\u0644\u0652 \u0639\u064E\u0644\u064E\u0649 \u0627\u0644\u0644\u0651\u064E\u0647\u0650 \u0641\u064E\u0647\u064F\u0648\u064E \u062D\u064E\u0633\u0652\u0628\u064F\u0647\u064F \u06DA \u0625\u0650\u0646\u0651\u064E \u0627\u0644\u0644\u0651\u064E\u0647\u064E \u0628\u064E\u0627\u0644\u0650\u063A\u064F \u0623\u064E\u0645\u0652\u0631\u0650\u0647\u0650 \u06DA \u0642\u064E\u062F\u0652 \u062C\u064E\u0639\u064E\u0644\u064E \u0627\u0644\u0644\u0651\u064E\u0647\u064F \u0644\u0650\u0643\u064F\u0644\u0651\u0650 \u0634\u064E\u064A\u0652\u0621\u064D \u0642\u064E\u062F\u0652\u0631\u064B\u0627",
+    ref: "Quran 65:3",
+    en: { surah: "Surah At-Talaq (65:2-3)", ayah: '"And whoever relies upon Allah \u2014 then He is sufficient for him. Indeed, Allah will accomplish His purpose. Allah has already set for everything a destiny."', explanation: "Anxiety often stems from feeling out of control. This verse shifts your focus from what you can't control to Who is in control. When you place your trust in Allah, He becomes enough for you. It doesn't mean problems vanish, but you gain a profound sense of peace knowing that everything unfolds according to a greater wisdom." },
+    ar: { surah: "\u0633\u0648\u0631\u0629 \u0627\u0644\u0637\u0644\u0627\u0642 (65:2-3)", ayah: "\u00AB\u0648\u0645\u0646 \u064A\u062A\u0648\u0643\u0644 \u0639\u0644\u0649 \u0627\u0644\u0644\u0647 \u0641\u0647\u0648 \u062D\u0633\u0628\u0647 \u06DA \u0625\u0646 \u0627\u0644\u0644\u0647 \u0628\u0627\u0644\u063A \u0623\u0645\u0631\u0647 \u06DA \u0642\u062F \u062C\u0639\u0644 \u0627\u0644\u0644\u0647 \u0644\u0643\u0644 \u0634\u064A\u0621 \u0642\u062F\u0631\u064B\u0627\u00BB", explanation: "\u0627\u0644\u0642\u0644\u0642 \u063A\u0627\u0644\u0628\u064B\u0627 \u0645\u0627 \u064A\u0646\u0634\u0623 \u0639\u0646 \u0627\u0644\u0634\u0639\u0648\u0631 \u0628\u062E\u0633\u0627\u0631\u0629 \u0627\u0644\u0633\u064A\u0637\u0631\u0629. \u0647\u0630\u0647 \u0627\u0644\u0622\u064A\u0629 \u062A\u0646\u0642\u0644 \u062A\u0631\u0643\u064A\u0632\u0643 \u0645\u0645\u0627 \u0644\u0627 \u062A\u0633\u062A\u0637\u064A\u0639 \u0627\u0644\u0633\u064A\u0637\u0631\u0629 \u0639\u0644\u064A\u0647 \u0625\u0644\u0649 \u0645\u0646 \u0628\u064A\u062F\u0647 \u0627\u0644\u0633\u064A\u0637\u0631\u0629. \u0639\u0646\u062F\u0645\u0627 \u062A\u0636\u0639 \u062B\u0642\u062A\u0643 \u0641\u064A \u0627\u0644\u0644\u0647\u060C \u064A\u0643\u0641\u064A\u0643. \u0644\u0627 \u064A\u0639\u0646\u064A \u0630\u0644\u0643 \u0623\u0646 \u0627\u0644\u0645\u0634\u0627\u0643\u0644 \u062A\u062E\u062A\u0641\u064A\u060C \u0648\u0644\u0643\u0646\u0643 \u062A\u0643\u062A\u0633\u0628 \u0633\u0644\u0627\u0645\u064B\u0627 \u062F\u0627\u062E\u0644\u064A\u064B\u0627 \u0639\u0645\u064A\u0642\u064B\u0627 \u0628\u0645\u0639\u0631\u0641\u0629 \u0623\u0646 \u0643\u0644 \u0634\u064A\u0621 \u064A\u062C\u0631\u064A \u062D\u0633\u0628 \u062D\u0643\u0645\u0629 \u0623\u0639\u0644\u0649." },
+    fr: { surah: "Sourate At-Talaq (65:2-3)", ayah: "\u00AB\u202FEt quiconque place sa confiance en Allah, Il lui suffit. Allah atteint Son but. Allah a assign\u00E9 une mesure \u00E0 chaque chose.\u202F\u00BB", explanation: "L\u2019anxi\u00E9t\u00E9 vient souvent du sentiment de perdre le contr\u00F4le. Ce verset d\u00E9place ton attention de ce que tu ne ma\u00EEtrises pas vers Celui qui ma\u00EEtrise tout. Quand tu te confies \u00E0 Allah, Il te suffit. Cela ne signifie pas que les probl\u00E8mes disparaissent, mais tu trouves une paix profonde en sachant que tout suit une sagesse plus grande." }
+  },
+  lonely: {
+    arabic: "\u0648\u064E\u0647\u064F\u0648\u064E \u0645\u064E\u0639\u064E\u0643\u064F\u0645\u0652 \u0623\u064E\u064A\u0652\u0646\u064E \u0645\u064E\u0627 \u0643\u064F\u0646\u062A\u064F\u0645\u0652 \u06DA \u0648\u064E\u0627\u0644\u0644\u0651\u064E\u0647\u064F \u0628\u0650\u0645\u064E\u0627 \u062A\u064E\u0639\u0652\u0645\u064E\u0644\u064F\u0648\u0646\u064E \u0628\u064E\u0635\u0650\u064A\u0631\u064C",
+    ref: "Quran 57:4",
+    en: { surah: "Surah Al-Hadid (57:4)", ayah: '"And He is with you wherever you are."', explanation: "Loneliness can feel like being forgotten, but this verse carries a profound truth: you are never truly alone. Allah's presence is with you in every moment, whether you feel it or not. When people aren't there, He is. This Ayah is a reminder that your Creator knows you, sees you, and is closer to you than anyone could ever be." },
+    ar: { surah: "\u0633\u0648\u0631\u0629 \u0627\u0644\u062D\u062F\u064A\u062F (57:4)", ayah: "\u00AB\u0648\u0647\u0648 \u0645\u0639\u0643\u0645 \u0623\u064A\u0646 \u0645\u0627 \u0643\u0646\u062A\u0645\u061B \u0648\u0627\u0644\u0644\u0647 \u0628\u0645\u0627 \u062A\u0639\u0645\u0644\u0648\u0646 \u0628\u0635\u064A\u0631\u00BB", explanation: "\u0627\u0644\u0648\u062D\u062F\u0629 \u0642\u062F \u062A\u062C\u0639\u0644\u0643 \u062A\u0634\u0639\u0631 \u0623\u0646\u0643 \u0645\u0646\u0633\u064A\u060C \u0648\u0644\u0643\u0646 \u0647\u0630\u0647 \u0627\u0644\u0622\u064A\u0629 \u062A\u062D\u0645\u0644 \u062D\u0642\u064A\u0642\u0629 \u0639\u0645\u064A\u0642\u0629: \u0623\u0646\u062A \u0644\u0633\u062A \u0648\u062D\u064A\u062F\u064B\u0627 \u062D\u0642\u064B\u0627. \u0627\u0644\u0644\u0647 \u0645\u0639\u0643 \u0641\u064A \u0643\u0644 \u0644\u062D\u0638\u0629\u060C \u0633\u0648\u0627\u0621 \u0634\u0639\u0631\u062A \u0628\u0630\u0644\u0643 \u0623\u0645 \u0644\u0627. \u0639\u0646\u062F\u0645\u0627 \u0644\u0627 \u064A\u0643\u0648\u0646 \u0627\u0644\u0646\u0627\u0633 \u0647\u0646\u0627\u0643\u060C \u0647\u0648 \u0647\u0646\u0627\u0643. \u0647\u0630\u0647 \u0627\u0644\u0622\u064A\u0629 \u062A\u0630\u0643\u064A\u0631 \u0628\u0623\u0646 \u062E\u0627\u0644\u0642\u0643 \u064A\u0639\u0631\u0641\u0643 \u0648\u064A\u0631\u0627\u0643 \u0648\u0623\u0642\u0631\u0628 \u0625\u0644\u064A\u0643 \u0645\u0646 \u0623\u064A \u0623\u062D\u062F." },
+    fr: { surah: "Sourate Al-Hadid (57:4)", ayah: "\u00AB\u202FIl est avec vous o\u00F9 que vous soyez.\u202F\u00BB", explanation: "La solitude peut donner l\u2019impression d\u2019\u00EAtre oubli\u00E9, mais ce verset porte une v\u00E9rit\u00E9 profonde\u202F: tu n\u2019es jamais vraiment seul. La pr\u00E9sence d\u2019Allah est avec toi \u00E0 chaque instant, que tu la sentes ou non. Quand les autres ne sont pas l\u00E0, Lui est l\u00E0. Ce verset te rappelle que ton Cr\u00E9ateur te conna\u00EEt, te voit, et est plus proche de toi que quiconque ne pourra jamais l\u2019\u00EAtre." }
+  },
+  angry: {
+    arabic: "\u0648\u064E\u0627\u0644\u0652\u0643\u064E\u0627\u0638\u0650\u0645\u0650\u064A\u0646\u064E \u0627\u0644\u0652\u063A\u064E\u064A\u0652\u0638\u064E \u0648\u064E\u0627\u0644\u0652\u0639\u064E\u0627\u0641\u0650\u064A\u0646\u064E \u0639\u064E\u0646\u0650 \u0627\u0644\u0646\u0651\u064E\u0627\u0633\u0650 \u06D7 \u0648\u064E\u0627\u0644\u0644\u0651\u064E\u0647\u064F \u064A\u064F\u062D\u0650\u0628\u0651\u064F \u0627\u0644\u0652\u0645\u064F\u062D\u0652\u0633\u0650\u0646\u0650\u064A\u0646\u064E",
+    ref: "Quran 3:134",
+    en: { surah: "Surah Al-Imran (3:133-134)", ayah: '"Those who restrain anger and who pardon the people \u2014 and Allah loves the doers of good."', explanation: "Anger is natural, but this verse elevates the one who controls it. It tells us that forgiveness and restraint are not weaknesses \u2014 they are acts of excellence that Allah loves. Next time anger flares, pause and remember: holding back isn't losing control, it's earning the love of your Creator." },
+    ar: { surah: "\u0633\u0648\u0631\u0629 \u0622\u0644 \u0639\u0645\u0631\u0627\u0646 (3:133-134)", ayah: "\u00AB\u0648\u0627\u0644\u0643\u0627\u0638\u0645\u064A\u0646 \u0627\u0644\u063A\u064A\u0638 \u0648\u0627\u0644\u0639\u0627\u0641\u064A\u0646 \u0639\u0646 \u0627\u0644\u0646\u0627\u0633\u061B \u0648\u0627\u0644\u0644\u0647 \u064A\u062D\u0628 \u0627\u0644\u0645\u062D\u0633\u0646\u064A\u0646\u00BB", explanation: "\u0627\u0644\u063A\u0636\u0628 \u0637\u0628\u064A\u0639\u064A\u060C \u0648\u0644\u0643\u0646 \u0647\u0630\u0647 \u0627\u0644\u0622\u064A\u0629 \u062A\u0631\u0641\u0639 \u0645\u0646 \u064A\u0633\u064A\u0637\u0631 \u0639\u0644\u064A\u0647. \u062A\u062E\u0628\u0631\u0646\u0627 \u0623\u0646 \u0627\u0644\u0645\u063A\u0641\u0631\u0629 \u0648\u0627\u0644\u0636\u0628\u0637 \u0644\u064A\u0633\u0627 \u0636\u0639\u0641\u064B\u0627\u060C \u0628\u0644 \u0647\u0645\u0627 \u0623\u0639\u0645\u0627\u0644 \u0625\u062D\u0633\u0627\u0646 \u064A\u062D\u0628\u0647\u0627 \u0627\u0644\u0644\u0647. \u0641\u064A \u0627\u0644\u0645\u0631\u0629 \u0627\u0644\u0642\u0627\u062F\u0645\u0629 \u0627\u0644\u062A\u064A \u064A\u062B\u0648\u0631 \u0641\u064A\u0647\u0627 \u063A\u0636\u0628\u0643\u060C \u062A\u0648\u0642\u0641 \u0648\u062A\u0630\u0643\u0631: \u0627\u0644\u0643\u0638 \u0644\u064A\u0633 \u0641\u0642\u062F\u0627\u0646\u064B\u0627 \u0644\u0644\u0633\u064A\u0637\u0631\u0629\u060C \u0628\u0644 \u0643\u0633\u0628 \u0644\u062D\u0628 \u062E\u0627\u0644\u0642\u0643." },
+    fr: { surah: "Sourate Al-Imran (3:133-134)", ayah: "\u00AB\u202FCeux qui dominent leur col\u00E8re et pardonnent aux gens \u2014 et Allah aime les bienfaisants.\u202F\u00BB", explanation: "La col\u00E8re est naturelle, mais ce verset \u00E9l\u00E8ve celui qui la ma\u00EEtrise. Il nous dit que le pardon et la retenue ne sont pas des faiblesses\u202F: ce sont des actes d\u2019excellence qu\u2019Allah aime. La prochaine fois que la col\u00E8re monte, fais une pause et souviens-toi\u202F: te retenir, ce n\u2019est pas perdre le contr\u00F4le, c\u2019est gagner l\u2019amour de ton Cr\u00E9ateur." }
+  },
+  hopeless: {
+    arabic: "\u0642\u064F\u0644\u0652 \u064A\u064E\u0627 \u0639\u0650\u0628\u064E\u0627\u062F\u0650\u064A\u064E \u0627\u0644\u0651\u064E\u0630\u0650\u064A\u0646\u064E \u0623\u064E\u0633\u0652\u0631\u064E\u0641\u064F\u0648\u0627 \u0639\u064E\u0644\u064E\u0649\u0670 \u0623\u064E\u0646\u0641\u064F\u0633\u0650\u0647\u0650\u0645\u0652 \u0644\u064E\u0627 \u062A\u064E\u0642\u0652\u0646\u064E\u0637\u064F\u0648\u0627 \u0645\u0650\u0646 \u0631\u0651\u064E\u062D\u0652\u0645\u064E\u0629\u0650 \u0627\u0644\u0644\u0651\u064E\u0647\u0650 \u06DA \u0625\u0650\u0646\u0651\u064E \u0627\u0644\u0644\u0651\u064E\u0647\u064E \u064A\u064E\u063A\u0652\u0641\u0650\u0631\u064F \u0627\u0644\u0630\u0651\u064F\u0646\u064F\u0648\u0628\u064E \u062C\u064E\u0645\u0650\u064A\u0639\u064B\u0627 \u06DA \u0625\u0650\u0646\u0651\u064E\u0647\u064F \u0647\u064F\u0648\u064E \u0627\u0644\u0652\u063A\u064E\u0641\u064F\u0648\u0631\u064F \u0627\u0644\u0631\u0651\u064E\u062D\u0650\u064A\u0645\u064F",
+    ref: "Quran 39:53",
+    en: { surah: "Surah Az-Zumar (39:53)", ayah: '"Say: O My servants who have transgressed against themselves, do not despair of the mercy of Allah. Indeed, Allah forgives all sins. Indeed, it is He who is the Forgiving, the Merciful."', explanation: "This is one of the most merciful verses in the Quran. It's a direct call from Allah to those who feel they've gone too far or that there's no way back. No matter how deep the darkness, Allah's mercy is greater. Hopelessness is never the final chapter \u2014 turn back to Him, because His door is always open." },
+    ar: { surah: "\u0633\u0648\u0631\u0629 \u0627\u0644\u0632\u0645\u0631 (39:53)", ayah: "\u00AB\u0642\u0644 \u064A\u0627 \u0639\u0628\u0627\u062F\u064A \u0627\u0644\u0630\u064A\u0646 \u0623\u0633\u0631\u0641\u0648\u0627 \u0639\u0644\u0649 \u0623\u0646\u0641\u0633\u0647\u0645 \u0644\u0627 \u062A\u0642\u0646\u0637\u0648\u0627 \u0645\u0646 \u0631\u062D\u0645\u0629 \u0627\u0644\u0644\u0647\u061B \u0625\u0646 \u0627\u0644\u0644\u0647 \u064A\u063A\u0641\u0631 \u0627\u0644\u0630\u0646\u0648\u0628 \u062C\u0645\u064A\u0639\u064B\u0627\u061B \u0625\u0646\u0647 \u0647\u0648 \u0627\u0644\u063A\u0641\u0648\u0631 \u0627\u0644\u0631\u062D\u064A\u0645\u00BB", explanation: "\u0647\u0630\u0647 \u0648\u0627\u062D\u062F\u0629 \u0645\u0646 \u0623\u0631\u062D\u0645 \u0627\u0644\u0622\u064A\u0627\u062A \u0641\u064A \u0627\u0644\u0642\u0631\u0622\u0646. \u0625\u0646\u0647\u0627 \u0646\u062F\u0627\u0621 \u0645\u0628\u0627\u0634\u0631 \u0645\u0646 \u0627\u0644\u0644\u0647 \u0644\u0623\u0648\u0644\u0626\u0643 \u0627\u0644\u0630\u064A\u0646 \u064A\u0634\u0639\u0631\u0648\u0646 \u0623\u0646\u0647\u0645 \u062C\u0627\u0648\u0632\u0648\u0627 \u0627\u0644\u062D\u062F \u0623\u0648 \u0623\u0646\u0647 \u0644\u0627 \u0631\u062C\u0648\u0639. \u0628\u063A\u0636 \u0627\u0644\u0646\u0638\u0631 \u0639\u0646 \u0639\u0645\u0642 \u0627\u0644\u0638\u0644\u0627\u0645\u060C \u0631\u062D\u0645\u0629 \u0627\u0644\u0644\u0647 \u0623\u0643\u0628\u0631. \u0627\u0644\u064A\u0623\u0633 \u0644\u064A\u0633 \u0623\u0628\u062F\u064B\u0627 \u0627\u0644\u0641\u0635\u0644 \u0627\u0644\u0623\u062E\u064A\u0631 \u2014 \u0639\u062F \u0625\u0644\u064A\u0647\u060C \u0641\u0628\u0627\u0628\u0647 \u0645\u0641\u062A\u0648\u062D \u062F\u0627\u0626\u0645\u064B\u0627." },
+    fr: { surah: "Sourate Az-Zumar (39:53)", ayah: "\u00AB\u202FD\u00E9clare\u202F: \u00AB\u202F\u00D4 Mes serviteurs qui avez commis des exc\u00E8s \u00E0 votre propre d\u00E9triment, ne d\u00E9sesp\u00E9rez pas de la mis\u00E9ricorde d\u2019Allah. Allah pardonne tous les p\u00E9ch\u00E9s. C\u2019est Lui le Pardonneur, le Tr\u00E8s Mis\u00E9ricordieux.\u202F\u00BB", explanation: "C\u2019est l\u2019un des versets les plus mis\u00E9ricordieux du Coran. C\u2019est un appel direct d\u2019Allah \u00E0 ceux qui pensent \u00EAtre all\u00E9s trop loin ou qu\u2019il n\u2019y a plus de retour possible. Quelle que soit la profondeur des t\u00E9n\u00E8bres, la mis\u00E9ricorde d\u2019Allah est plus grande. Le d\u00E9sespoir n\u2019est jamais le dernier chapitre\u202F: retourne vers Lui, Sa porte est toujours ouverte." }
+  },
+  grateful: {
+    arabic: "\u0648\u064E\u0625\u0650\u0630\u0652 \u062A\u064E\u0623\u064E\u0630\u0651\u064E\u0646\u064E \u0631\u064E\u0628\u0651\u064F\u0643\u064F\u0645\u0652 \u0644\u064E\u0626\u0650\u0646\u0652 \u0634\u064E\u0643\u064E\u0631\u062A\u064F\u0645\u0652 \u0644\u064E\u0623\u064E\u0632\u0650\u064A\u062F\u064E\u0646\u0651\u064E\u0643\u064F\u0645\u0652",
+    ref: "Quran 14:7",
+    en: { surah: "Surah Ibrahim (14:7)", ayah: '"If you are grateful, I will surely increase you."', explanation: "Gratitude is a key that unlocks more blessings. This verse teaches that thankfulness isn't just polite \u2014 it's transformative. When you recognize and appreciate what you have, Allah promises to give you even more. Your gratitude doesn't benefit Him; it opens your heart to see the abundance already around you." },
+    ar: { surah: "\u0633\u0648\u0631\u0629 \u0625\u0628\u0631\u0627\u0647\u064A\u0645 (14:7)", ayah: "\u00AB\u0648\u0625\u0630 \u062A\u0623\u0630\u0646 \u0631\u0628\u0643\u0645 \u0644\u0626\u0646 \u0634\u0643\u0631\u062A\u0645 \u0644\u0623\u0632\u064A\u062F\u0646\u0643\u0645\u00BB", explanation: "\u0627\u0644\u0634\u0643\u0631 \u0645\u0641\u062A\u0627\u062D \u064A\u0641\u062A\u062D \u0623\u0628\u0648\u0627\u0628 \u0627\u0644\u0628\u0631\u0643\u0627\u062A. \u062A\u0639\u0644\u0645\u0646\u0627 \u0647\u0630\u0647 \u0627\u0644\u0622\u064A\u0629 \u0623\u0646 \u0627\u0644\u0627\u0645\u062A\u0646\u0627\u0646 \u0644\u064A\u0633 \u0645\u062C\u0631\u062F \u0623\u062F\u0628\u060C \u0628\u0644 \u0647\u0648 \u062A\u062D\u0648\u064A\u0644. \u0639\u0646\u062F\u0645\u0627 \u062A\u062F\u0631\u0643 \u0648\u062A\u0642\u062F\u0631 \u0645\u0627 \u0644\u062F\u064A\u0643\u060C \u064A\u0639\u062F\u0643 \u0627\u0644\u0644\u0647 \u0628\u0627\u0644\u0645\u0632\u064A\u062F. \u0634\u0643\u0631\u0643 \u0644\u0627 \u064A\u0646\u0641\u0639\u0647\u060C \u0628\u0644 \u064A\u0641\u062A\u062D \u0642\u0644\u0628\u0643 \u0644\u0631\u0624\u064A\u0629 \u0627\u0644\u0648\u0641\u0631 \u0627\u0644\u0630\u064A \u064A\u062D\u064A\u0637 \u0628\u0643." },
+    fr: { surah: "Sourate Ibrahim (14:7)", ayah: "\u00AB\u202FSi vous \u00EAtes reconnaissants, Je vous donnerai davantage.\u202F\u00BB", explanation: "La gratitude est une cl\u00E9 qui ouvre davantage de b\u00E9n\u00E9dictions. Ce verset enseigne que la reconnaissance n\u2019est pas seulement une politesse\u202F: elle est transformatrice. Quand tu reconnais et appr\u00E9cies ce que tu as, Allah promet de t\u2019accorder encore plus. Ta gratitude ne Lui profite pas\u202F; elle ouvre ton c\u0153ur \u00E0 l\u2019abondance qui t\u2019entoure d\u00E9j\u00E0." }
+  },
+  confused: {
+    arabic: "\u0648\u064E\u0646\u064E\u0632\u0651\u064E\u0644\u0652\u0646\u064E\u0627 \u0639\u064E\u0644\u064E\u064A\u0652\u0643\u064E \u0627\u0644\u0652\u0643\u0650\u062A\u064E\u0627\u0628\u064E \u062A\u0650\u0628\u0652\u064A\u064E\u0627\u0646\u064B\u0627 \u0644\u0650\u0643\u064F\u0644\u0651\u0650 \u0634\u064E\u064A\u0652\u0621\u064D \u0648\u064E\u0647\u064F\u062F\u064B\u0649 \u0648\u064E\u0631\u064E\u062D\u0652\u0645\u064E\u0629\u064B \u0648\u064E\u0628\u064F\u0634\u0652\u0631\u064E\u0649\u0670 \u0644\u0650\u0644\u0652\u0645\u064F\u0633\u0652\u0644\u0650\u0645\u0650\u064A\u0646\u064E",
+    ref: "Quran 16:89",
+    en: { surah: "Surah An-Nahl (16:89)", ayah: '"And We have sent down to you the Book as clarification for all things, and as guidance and mercy and good tidings for the Muslims."', explanation: "When you feel lost or unsure which path to take, the Quran is described here as the ultimate clarification. It doesn't promise to answer every question instantly, but it provides a compass for your heart. This verse reminds you to return to divine guidance when the world feels unclear \u2014 clarity comes from staying connected to the source of truth." },
+    ar: { surah: "\u0633\u0648\u0631\u0629 \u0627\u0644\u0646\u062D\u0644 (16:89)", ayah: "\u00AB\u0648\u0646\u0632\u0644\u0646\u0627 \u0639\u0644\u064A\u0643 \u0627\u0644\u0643\u062A\u0627\u0628 \u062A\u0628\u064A\u0627\u0646\u064B\u0627 \u0644\u0643\u0644 \u0634\u064A\u0621 \u0648\u0647\u062F\u0649 \u0648\u0631\u062D\u0645\u0629 \u0648\u0628\u0634\u0631\u0649 \u0644\u0644\u0645\u0633\u0644\u0645\u064A\u0646\u00BB", explanation: "\u0639\u0646\u062F\u0645\u0627 \u062A\u0634\u0639\u0631 \u0628\u0627\u0644\u0636\u064A\u0627\u0639 \u0623\u0648 \u0644\u0627 \u062A\u062F\u0631\u064A \u0623\u064A \u0637\u0631\u064A\u0642 \u062A\u0633\u0644\u0643\u060C \u064A\u0635\u0641 \u0627\u0644\u0642\u0631\u0622\u0646 \u0643\u0627\u0644\u062A\u0648\u0636\u064A\u062D \u0627\u0644\u0623\u0642\u0635\u0649. \u0644\u0627 \u064A\u0639\u062F \u0628\u0625\u062C\u0627\u0628\u0629 \u0643\u0644 \u0633\u0624\u0627\u0644 \u0641\u0648\u0631\u064B\u0627\u060C \u0648\u0644\u0643\u0646\u0647 \u064A\u0648\u0641\u0631 \u0628\u0648\u0635\u0644\u0629 \u0644\u0642\u0644\u0628\u0643. \u0647\u0630\u0647 \u0627\u0644\u0622\u064A\u0629 \u062A\u0630\u0643\u0631\u0643 \u0628\u0627\u0644\u0639\u0648\u062F\u0629 \u0625\u0644\u0649 \u0627\u0644\u0647\u062F\u0649 \u0627\u0644\u0625\u0644\u0647\u064A \u0639\u0646\u062F\u0645\u0627 \u064A\u0628\u062F\u0648 \u0627\u0644\u0639\u0627\u0644\u0645 \u063A\u0627\u0645\u0636\u064B\u0627 \u2014 \u0627\u0644\u0648\u0636\u0648\u062D \u064A\u0623\u062A\u064A \u0645\u0646 \u0627\u0644\u0627\u0631\u062A\u0628\u0627\u0637 \u0628\u0645\u0635\u062F\u0631 \u0627\u0644\u062D\u0642." },
+    fr: { surah: "Sourate An-Nahl (16:89)", ayah: "\u00AB\u202FEt Nous avons fait descendre sur toi le Livre comme un expos\u00E9 clair de toute chose, un guide, une mis\u00E9ricorde et une bonne annonce pour les Musulmans.\u202F\u00BB", explanation: "Quand tu te sens perdu ou incertain du chemin \u00E0 prendre, le Coran est d\u00E9crit ici comme l\u2019explication ultime. Il ne promet pas de r\u00E9pondre \u00E0 tout instantan\u00E9ment, mais il offre une boussole pour ton c\u0153ur. Ce verset te rappelle de revenir vers la guidance divine quand le monde semble flou\u202F: la clart\u00E9 vient en restant connect\u00E9 \u00E0 la source de v\u00E9rit\u00E9." }
+  },
+  guilty: {
+    arabic: "\u0625\u0650\u0644\u0651\u064E\u0627 \u0645\u064E\u0646 \u062A\u064E\u0627\u0628\u064E \u0648\u064E\u0622\u0645\u064E\u0646\u064E \u0648\u064E\u0639\u064E\u0645\u0650\u0644\u064E \u0639\u064E\u0645\u064E\u0644\u064B\u0627 \u0635\u064E\u0627\u0644\u0650\u062D\u064B\u0627 \u0641\u064E\u0623\u064F\u0648\u0644\u064E\u0670\u0626\u0650\u0643\u064E \u064A\u064F\u0628\u064E\u062F\u0651\u0650\u0644\u064F \u0627\u0644\u0644\u0651\u064E\u0647\u064F \u0633\u064E\u064A\u0651\u0650\u0626\u064E\u0627\u062A\u0650\u0647\u0650\u0645\u0652 \u062D\u064E\u0633\u064E\u0646\u064E\u0627\u062A\u064D \u06D7 \u0648\u064E\u0643\u064E\u0627\u0646\u064E \u0627\u0644\u0644\u0651\u064E\u0647\u064F \u063A\u064E\u0641\u064F\u0648\u0631\u064B\u0627 \u0631\u0651\u064E\u062D\u0650\u064A\u0645\u064B\u0627",
+    ref: "Quran 25:70",
+    en: { surah: "Surah Al-Furqan (25:70)", ayah: '"Except for those who repent, believe, and do righteous work \u2014 for them Allah will replace their evil deeds with good. And ever is Allah Forgiving and Merciful."', explanation: "Guilt can either paralyze you or push you toward growth. This verse offers one of the most beautiful transformations imaginable: not only can your sins be forgiven, but they can be replaced with good deeds. Your past mistakes don't define you \u2014 your repentance and sincere effort to improve do. Allah's mercy turns your failures into fresh starts." },
+    ar: { surah: "\u0633\u0648\u0631\u0629 \u0627\u0644\u0641\u0631\u0642\u0627\u0646 (25:70)", ayah: "\u00AB\u0625\u0644\u0627 \u0645\u0646 \u062A\u0627\u0628 \u0648\u0622\u0645\u0646 \u0648\u0639\u0645\u0644 \u0639\u0645\u0644\u064B\u0627 \u0635\u0627\u0644\u062D\u064B\u0627 \u0641\u0623\u0648\u0644\u0626\u0643 \u064A\u0628\u062F\u0644 \u0627\u0644\u0644\u0647 \u0633\u064A\u0626\u0627\u062A\u0647\u0645 \u062D\u0633\u0646\u0627\u062A\u061B \u0648\u0643\u0627\u0646 \u0627\u0644\u0644\u0647 \u063A\u0641\u0648\u0631\u064B\u0627 \u0631\u062D\u064A\u0645\u064B\u0627\u00BB", explanation: "\u0627\u0644\u0630\u0646\u0628 \u0642\u062F \u064A\u0634\u0644\u0643 \u0623\u0648 \u064A\u062F\u0641\u0639\u0643 \u0646\u062D\u0648 \u0627\u0644\u0646\u0645\u0648. \u0647\u0630\u0647 \u0627\u0644\u0622\u064A\u0629 \u062A\u0642\u062F\u0645 \u0648\u0627\u062D\u062F\u0629 \u0645\u0646 \u0623\u062C\u0645\u0644 \u0627\u0644\u062A\u062D\u0648\u0644\u0627\u062A: \u0644\u064A\u0633 \u0641\u0642\u0637 \u064A\u0645\u0643\u0646 \u063A\u0641\u0631\u0627\u0646 \u0630\u0646\u0648\u0628\u0643\u060C \u0628\u0644 \u0648\u0627\u0633\u062A\u0628\u062F\u0627\u0644\u0647\u0627 \u0628\u062D\u0633\u0646\u0627\u062A. \u0623\u062E\u0637\u0627\u0624\u0643 \u0627\u0644\u0645\u0627\u0636\u064A\u0629 \u0644\u0627 \u062A\u062D\u062F\u062F\u0643 \u2014 \u062A\u0648\u0628\u062A\u0643 \u0648\u062C\u0647\u062F\u0643 \u0627\u0644\u0635\u0627\u062F\u0642 \u0647\u0648 \u0645\u0627 \u064A\u062D\u062F\u062F\u0643. \u0631\u062D\u0645\u0629 \u0627\u0644\u0644\u0647 \u062A\u062D\u0648\u0644 \u0625\u062E\u0641\u0627\u0642\u0627\u062A\u0643 \u0625\u0644\u0649 \u0628\u062F\u0627\u064A\u0627\u062A \u062C\u062F\u064A\u062F\u0629." },
+    fr: { surah: "Sourate Al-Furqan (25:70)", ayah: "\u00AB\u202FSauf celui qui se repent, croit et accomplit une bonne \u0153uvre\u202F; alors Allah changera ses mauvaises actions en bonnes. Et Allah est Pardonneur et Mis\u00E9ricordieux.\u202F\u00BB", explanation: "La culpabilit\u00E9 peut soit te paralyser, soit te pousser \u00E0 grandir. Ce verset offre l\u2019une des transformations les plus belles qui soient\u202F: non seulement tes p\u00E9ch\u00E9s peuvent \u00EAtre pardonn\u00E9s, mais ils peuvent \u00EAtre remplac\u00E9s par de bonnes actions. Tes erreurs pass\u00E9es ne te d\u00E9finissent pas\u202F; c\u2019est ton repentir et ton effort sinc\u00E8re pour t\u2019am\u00E9liorer qui comptent. La mis\u00E9ricorde d\u2019Allah transforme tes \u00E9checs en nouveaux d\u00E9parts." }
+  }
+};
+
+const emotionAI = {
+  sad: [
+    "sad", "sadness", "sorrow", "grief", "grieve", "mourning", "mourn", "heartbroken", "heartbreak",
+    "crying", "cry", "tears", "upset", "miserable", "depressed", "depression", "despair",
+    "despondent", "melancholy", "blue", "down", "downhearted", "gloomy", "heavy heart",
+    "low", "low spirits", "broken heart", "heartache", "woe", "unhappy", "hurt", "pain",
+    "suffering", "distress", "dismal", "dreary", "somber", "disappointed", "disappointment",
+    "disheartened", "crestfallen", "dejected", "doleful", "forlorn", "glum", "morose",
+    "somber", "woebegone", "bereaved", "bereavement", "lament", "lamenting", "anguish",
+    "anguished", "sorrowful", "tearful", "weepy", "saddened", "dismayed", "hopeless",
+    "hopelessness", "inconsolable", "devastated", "devastation", "desolate", "desolation",
+    "feeling down", "down in the dumps", "bummed", "bumming", "broken", "crushed",
+    "heavy", "sullen", "sulky", "sulking", "pessimistic", "pessimism", "lonely",
+    "spiritless", "sigh", "wretched", "tragic", "tragedy", "grievous"
+  ],
+  anxious: [
+    "anxious", "anxiety", "worried", "worry", "nervous", "nerves", "stress", "stressed",
+    "fear", "afraid", "scared", "frightened", "fearful", "panic", "panicking", "panicked",
+    "tense", "tension", "uneasy", "unease", "restless", "restlessness", "apprehensive",
+    "apprehension", "dread", "dreading", "terrified", "terror", "horror", "alarmed",
+    "alarm", "jittery", "jitters", "on edge", "edgy", "jumpy", "skittish", "spooked",
+    "overwhelmed", "overwhelming", "disturbed", "disturbance", "agitated", "agitation",
+    "fidgety", "fretting", "fret", "bothered", "troubled", "uptight", "wound up",
+    "angst", "antsy", "bristling", "cankers", "concerned", "concern", "disquiet",
+    "disquieted", "distressed", "distress", "doubtful", "dubious", "flustered",
+    "flutter", "hover", "misgiving", "nightmare", "overstrung", "perturbed",
+    "queasy", "shake", "shaky", "solicitude", "solicitous", "sweat", "sweating",
+    "trembling", "trembly", "triggered", "unquiet", "unsure", "verge", "vigilant",
+    "wary", "wimp", "worriment", "worrisome", "frazzled", "frayed"
+  ],
+  lonely: [
+    "lonely", "loneliness", "alone", "isolation", "isolated", "solitary", "solitude",
+    "abandoned", "abandonment", "forsaken", "deserted", "neglected", "forgotten",
+    "left out", "excluded", "exclusion", "outcast", "alienated", "alienation",
+    "detached", "detachment", "disconnected", "cut off", "estranged", "estranged",
+    "hermit", "recluse", "withdrawn", "withdrawal", "lonesome", "friendless",
+    "unloved", "unwanted", "unwelcome", "shunned", "rejected", "rejection",
+    "separated", "separation", "bereft", "companionless", "homesick", "homesickness",
+    "longing", "yearning", "empty", "emptiness", "hollow", "void", "missing",
+    "miss", "nostalgic", "nostalgia", "solo", "by myself", "on my own",
+    "without company", "no one", "nobody", "unseen", "invisible", "unheard",
+    "ignored", "banished", "cast aside", "discarded", "disconnected"
+  ],
+  angry: [
+    "angry", "anger", "mad", "furious", "fury", "rage", "raging", "irate", "irritated",
+    "irritation", "annoyed", "annoyance", "frustrated", "frustration", "aggravated",
+    "aggravation", "enraged", "incensed", "infuriated", "livid", "outraged", "outrage",
+    "wrath", "wrathful", "indignant", "indignation", "boiling", "fuming", "seething",
+    "cross", "cranky", "crabby", "grumpy", "grouchy", "testy", "touchy", "peevish",
+    "petulant", "sulky", "sullen", "resentful", "resentment", "bitter", "bitterness",
+    "hostile", "hostility", "belligerent", "aggressive", "aggression", "fierce",
+    "storming", "smoldering", "inflamed", "provoked", "provocation", "exasperated",
+    "exasperation", "displeased", "displeasure", "pissed", "steamed", "hot under collar",
+    "worked up", "riled", "incensed", "irascible", "temper", "tantrum", "explosive",
+    "vengeful", "vengeance", "spiteful", "spite", "savage", "wild", "unhinged"
+  ],
+  hopeless: [
+    "hopeless", "hopelessness", "despair", "despairing", "desperate", "desperation",
+    "despondent", "despondency", "discouraged", "discouragement", "disheartened",
+    "demoralized", "defeated", "defeat", "giving up", "give up", "surrender",
+    "lost all hope", "no hope", "without hope", "pessimistic", "pessimism",
+    "cynical", "cynicism", "bleak", "grim", "futile", "futility", "pointless",
+    "useless", "vain", "in vain", "meaningless", "meaninglessness", "empty",
+    "nihilism", "nihilistic", "resigned", "resignation", "abandoned hope",
+    "broken spirit", "crushed", "beaten", "broken", "defeated", "downcast",
+    "low", "lowest", "rock bottom", "bottom", "can't go on", "no point",
+    "why bother", "what's the use", "end of the rope", "end of tether",
+    "forlorn", "lamentable", "miserable", "wretched", "woeful", "tragic",
+    "black", "dark", "darkness", "gloom", "gloomy", "somber", "dismal"
+  ],
+  grateful: [
+    "grateful", "gratitude", "thankful", "thankfulness", "thanks", "blessed", "blessing",
+    "appreciative", "appreciation", "happy", "happiness", "joy", "joyful", "joyous",
+    "delighted", "delight", "content", "contentment", "satisfied", "satisfaction",
+    "fulfilled", "fulfillment", "peaceful", "peace", "serene", "serenity", "calm",
+    "calmness", "glad", "cheerful", "cheer", "elated", "elation", "ecstatic",
+    "ecstasy", "euphoric", "euphoria", "blissful", "bliss", "lucky", "fortunate",
+    "privileged", "touched", "moved", "warm", "warmth", "love", "loving",
+    "optimistic", "optimism", "positive", "positivity", "hopeful", "hope",
+    "radiant", "light", "lightness", "free", "freedom", "abundance",
+    "plenty", "prosperous", "prosperity", "well being", "wellness", "wholesome",
+    "blessings", "grace", "graceful", "good", "goodness", "kindness",
+    "generous", "generosity", "giving", "charity", "compassion", "merciful"
+  ],
+  confused: [
+    "confused", "confusion", "confusing", "lost", "unsure", "uncertain", "uncertainty",
+    "doubtful", "doubt", "undecided", "indecisive", "indecision", "perplexed",
+    "perplexity", "bewildered", "bewilderment", "baffled", "baffling", "puzzled",
+    "puzzle", "mystified", "mystery", "disoriented", "disorientation", "mixed up",
+    "foggy", "hazy", "unclear", "ambiguous", "vague", "turmoil", "inner turmoil",
+    "torn", "conflicted", "conflict", "dilemma", "caught between", "two minds",
+    "wavering", "vacillating", "hesitant", "hesitation", "flustered", "fluster",
+    "disconcerted", "rattled", "shaken", "discomposed", "troubled", "unsettled",
+    "unmoored", "adrift", "directionless", "aimless", "wandering", "questioning",
+    "question", "wonder", "wondering", "contradiction", "paradox", "irony",
+    "enigma", "puzzlement", "stupefied", "dumbfounded", "nonplussed", "astonished",
+    "surprised", "startled", "taken aback", "at a loss", "don't know",
+    "clueless", "blank", "lost for words", "discombobulated", "scattered"
+  ],
+  guilty: [
+    "guilty", "guilt", "ashamed", "shame", "shameful", "remorse", "remorseful",
+    "regret", "regretful", "sorry", "apologetic", "apology", "contrite", "contrition",
+    "penitent", "penitence", "repentant", "repentance", "conscience", "guilty conscience",
+    "blame", "blameworthy", "culpable", "responsible", "accountable", "fault",
+    "at fault", "wrong", "wrongdoing", "sinful", "sin", "transgression", "transgressed",
+    "mistake", "error", "misstep", "failure", "failed", "fall short", "falling short",
+    "inadequate", "inadequacy", "unworthy", "unworthiness", "bad", "bad person",
+    "disgrace", "disgraced", "dishonor", "dishonored", "humiliated", "humiliation",
+    "mortified", "mortification", "embarrassed", "embarrassment", "sheepish",
+    "self-conscious", "uneasy", "uncomfortable", "guilt-ridden", "weighed down",
+    "burdened", "loaded", "heavy", "heavy hearted", "confession", "confess",
+    "own up", "take blame", "fault", "lament", "lamentation", "self-blame",
+    "self-reproach", "self-condemnation", "self-criticism", "crawling", "cringe"
+  ]
+};
+
+let currentLang = 'en';
+let currentFeeling = '';
+
+const titleEl = document.getElementById('title');
+const subtitleEl = document.getElementById('subtitle');
+const input = document.getElementById('feelingInput');
+const submitBtn = document.getElementById('submitBtn');
+const resultDiv = document.getElementById('result');
+const errorMsg = document.getElementById('errorMsg');
+const resetBtn = document.getElementById('resetBtn');
+const ayaContent = document.getElementById('ayaContent');
+const ayaArabic = document.getElementById('ayaArabic');
+const ayaRef = document.getElementById('ayaRef');
+const surahName = document.getElementById('surahName');
+const ayahRef = document.getElementById('ayahRef');
+const explanationContent = document.getElementById('explanationContent');
+const explanationHeading = document.getElementById('explanationHeading');
+const ratingHeading = document.getElementById('ratingHeading');
+const feelingLabels = document.querySelectorAll('.feeling-label');
+const langBtns = document.querySelectorAll('.lang-btn');
+const feelingBtns = document.querySelectorAll('.feeling-btn');
+const stars = document.querySelectorAll('.star');
+const ratingLabel = document.getElementById('ratingLabel');
+
+function normalize(str) {
+  return str.toLowerCase().trim().replace(/[^a-z\s]/g, '').replace(/\s+/g, ' ');
+}
+
+function aiMatch(text) {
+  const normalized = normalize(text);
+  if (!normalized) return null;
+  let bestFeeling = null, bestScore = 0;
+  for (const [feeling, words] of Object.entries(emotionAI)) {
+    let score = 0;
+    for (const word of words) {
+      const w = word.toLowerCase();
+      if (normalized === w) { score += 100; break; }
+      if (normalized.includes(w) && w.length > 3) score += 10;
+      if (normalized.startsWith(w) && w.length > 3) score += 5;
+      if (normalized.endsWith(w) && w.length > 3) score += 3;
+    }
+    if (score > bestScore) { bestScore = score; bestFeeling = feeling; }
+  }
+  const words = normalized.split(' ');
+  if (words.length > 1) {
+    for (const word of words) {
+      if (word.length < 3) continue;
+      for (const [feeling, ws] of Object.entries(emotionAI)) {
+        if (ws.includes(word)) return feeling;
+      }
+    }
+  }
+  return bestScore > 3 ? bestFeeling : null;
+}
+
+function getVerse(feeling) {
+  const key = normalize(feeling);
+  if (verses[key]) return verses[key];
+  for (const [phrase, data] of Object.entries(verses)) {
+    if (key.includes(phrase) || phrase.includes(key)) {
+      if (data.use) return verses[data.use];
+      return data;
+    }
+  }
+  const ai = aiMatch(feeling);
+  if (ai) return verses[ai];
+  for (const [phrase, data] of Object.entries(verses)) {
+    if (!data.use && key.includes(phrase)) return data;
+  }
+  return null;
+}
+
+function applyLang(lang) {
+  currentLang = lang;
+  const s = strings[lang];
+  titleEl.textContent = s.title;
+  subtitleEl.textContent = s.subtitle;
+  input.placeholder = s.placeholder;
+  submitBtn.textContent = s.findAyah;
+  explanationHeading.textContent = s.explanationHeading;
+  ratingHeading.textContent = s.ratingHeading;
+  resetBtn.textContent = s.resetBtn;
+
+  feelingLabels.forEach((el, i) => {
+    const feelings = ['sad', 'anxious', 'lonely', 'angry', 'hopeless', 'grateful', 'confused', 'guilty'];
+    el.textContent = s.feelings[feelings[i]];
+  });
+
+  langBtns.forEach(btn => btn.classList.toggle('active', btn.dataset.lang === lang));
+
+  if (resultDiv.classList.contains('visible') && currentFeeling) refreshResult(currentFeeling);
+}
+
+function refreshResult(feeling) {
+  const verse = getVerse(feeling);
+  if (!verse) return;
+  const loc = verse[currentLang] || verse.en;
+  surahName.textContent = loc.surah;
+  ayaArabic.textContent = verse.arabic || '';
+  ayaContent.textContent = loc.ayah;
+  ayaRef.textContent = verse.ref;
+  ayahRef.textContent = verse.ref;
+  explanationContent.textContent = loc.explanation;
+  loadRating(feeling);
+}
+
+function showVerse(feeling) {
+  const verse = getVerse(feeling);
+  if (!verse) {
+    errorMsg.textContent = strings[currentLang].errorNotFound;
+    errorMsg.classList.add('visible');
+    resultDiv.classList.remove('visible');
+    return;
+  }
+  currentFeeling = normalize(feeling);
+  errorMsg.classList.remove('visible');
+  refreshResult(feeling);
+  resultDiv.classList.add('visible');
+  resultDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function handleSubmit() {
+  const feeling = input.value;
+  if (!feeling.trim()) {
+    errorMsg.textContent = strings[currentLang].errorEmpty;
+    errorMsg.classList.add('visible');
+    return;
+  }
+  showVerse(feeling);
+}
+
+function loadRating(feeling) {
+  const key = 'rating_' + normalize(feeling);
+  const saved = localStorage.getItem(key);
+  const val = saved ? parseInt(saved) : 0;
+  stars.forEach(s => {
+    const v = parseInt(s.dataset.value);
+    s.classList.toggle('active', v <= val);
+  });
+  if (val > 0) {
+    ratingLabel.textContent = strings[currentLang].rated + ' ' + val + '/5';
+  } else {
+    ratingLabel.textContent = '';
+  }
+}
+
+function saveRating(feeling, value) {
+  const key = 'rating_' + normalize(feeling);
+  localStorage.setItem(key, value.toString());
+  loadRating(feeling);
+}
+
+langBtns.forEach(btn => btn.addEventListener('click', () => applyLang(btn.dataset.lang)));
+
+feelingBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    feelingBtns.forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    input.value = btn.dataset.feeling;
+    showVerse(btn.dataset.feeling);
+  });
+});
+
+stars.forEach(star => {
+  star.addEventListener('click', () => {
+    const val = parseInt(star.dataset.value);
+    if (currentFeeling) saveRating(currentFeeling, val);
+  });
+});
+
+submitBtn.addEventListener('click', handleSubmit);
+input.addEventListener('keydown', (e) => { if (e.key === 'Enter') handleSubmit(); });
+
+resetBtn.addEventListener('click', () => {
+  resultDiv.classList.remove('visible');
+  input.value = '';
+  input.focus();
+  errorMsg.classList.remove('visible');
+  currentFeeling = '';
+  feelingBtns.forEach(b => b.classList.remove('selected'));
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+</script>
+</body>
+</html>
